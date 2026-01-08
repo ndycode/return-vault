@@ -10,6 +10,7 @@
 import { Alert } from 'react-native';
 import { useProStore } from '../store/proStore';
 import { PRO_PRODUCT_ID } from '../types/pro';
+import { iapLog } from '../utils/debug';
 
 // Type definitions for expo-iap (will be available when package is installed)
 interface Product {
@@ -89,7 +90,7 @@ export async function purchasePro(
         });
         return true;
     } catch (error) {
-        console.error('[IAP] Purchase request failed:', error);
+        iapLog.error('Purchase request failed', error);
         return false;
     }
 }
@@ -102,7 +103,7 @@ export async function handlePurchaseSuccess(
     purchase: Purchase,
     finishTransaction: IAPHook['finishTransaction']
 ): Promise<void> {
-    console.log('[IAP] Purchase successful:', purchase.productId);
+    iapLog.log('Purchase successful', purchase.productId);
 
     // Grant Pro access
     useProStore.getState().setPro(true, purchase.productId);
@@ -123,7 +124,7 @@ export async function handlePurchaseSuccess(
  * Handle purchase error
  */
 export function handlePurchaseError(error: Error & { code?: string }): void {
-    console.error('[IAP] Purchase error:', error);
+    iapLog.error('Purchase error', error);
 
     // Don't show error for user cancellation
     if (error.code === 'user-cancelled' || error.message?.includes('cancel')) {
@@ -174,7 +175,7 @@ export async function restorePurchases(
             message: 'No previous purchases found.',
         };
     } catch (error) {
-        console.error('[IAP] Restore failed:', error);
+        iapLog.error('Restore failed', error);
         return {
             restored: false,
             message: 'Unable to restore purchases. Please try again.',
@@ -207,13 +208,13 @@ export function isIAPAvailable(): boolean {
  */
 export function devTogglePro(): void {
     if (!__DEV__) {
-        console.warn('[IAP] devTogglePro only works in development');
+        iapLog.warn('devTogglePro only works in development');
         return;
     }
 
     const store = useProStore.getState();
     store.setPro(!store.isPro, 'dev_toggle');
-    console.log('[IAP] Dev Pro status:', !store.isPro);
+    iapLog.log('Dev Pro status', !store.isPro);
 }
 
 // Export the hook for use in components

@@ -5,6 +5,8 @@
 
 import { SQLiteDatabase } from 'expo-sqlite';
 import { migrate001Initial, MIGRATION_VERSION as V1 } from './001_initial';
+import { migrate002CompositeIndexes, MIGRATION_VERSION as V2 } from './002_composite_indexes';
+import { dbLog } from '../../utils/debug';
 
 interface Migration {
     version: number;
@@ -14,6 +16,7 @@ interface Migration {
 
 const migrations: Migration[] = [
     { version: V1, name: '001_initial', migrate: migrate001Initial },
+    { version: V2, name: '002_composite_indexes', migrate: migrate002CompositeIndexes },
 ];
 
 /**
@@ -44,25 +47,25 @@ export async function runMigrations(db: SQLiteDatabase): Promise<void> {
     await db.execAsync('PRAGMA foreign_keys = ON');
 
     const currentVersion = await getDatabaseVersion(db);
-    console.log(`[DB] Current version: ${currentVersion}`);
+    dbLog.log(`Current version: ${currentVersion}`);
 
     const pendingMigrations = migrations.filter((m) => m.version > currentVersion);
 
     if (pendingMigrations.length === 0) {
-        console.log('[DB] No migrations to run');
+        dbLog.log('No migrations to run');
         return;
     }
 
-    console.log(`[DB] Running ${pendingMigrations.length} migration(s)`);
+    dbLog.log(`Running ${pendingMigrations.length} migration(s)`);
 
     for (const migration of pendingMigrations) {
-        console.log(`[DB] Running migration: ${migration.name}`);
+        dbLog.log(`Running migration: ${migration.name}`);
         await migration.migrate(db);
         await setDatabaseVersion(db, migration.version);
-        console.log(`[DB] Completed migration: ${migration.name}`);
+        dbLog.log(`Completed migration: ${migration.name}`);
     }
 
-    console.log('[DB] All migrations complete');
+    dbLog.log('All migrations complete');
 }
 
 /**

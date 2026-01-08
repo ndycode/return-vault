@@ -20,6 +20,10 @@ export interface InputProps extends TextInputProps {
     error?: string;
     /** Helper text */
     helper?: string;
+    /** Accessibility label (defaults to label) */
+    accessibilityLabel?: string;
+    /** Accessibility hint for additional context */
+    accessibilityHint?: string;
 }
 
 export function Input({
@@ -27,6 +31,8 @@ export function Input({
     error,
     helper,
     style,
+    accessibilityLabel,
+    accessibilityHint,
     ...props
 }: InputProps) {
     const [isFocused, setIsFocused] = useState(false);
@@ -54,6 +60,9 @@ export function Input({
                     setIsFocused(false);
                     props.onBlur?.(e);
                 }}
+                accessibilityLabel={accessibilityLabel ?? label}
+                accessibilityHint={accessibilityHint}
+                accessibilityState={{ disabled: props.editable === false }}
                 {...props}
             />
             {error && (

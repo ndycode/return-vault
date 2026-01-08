@@ -26,6 +26,8 @@ export interface CollapsibleSectionProps {
     hideHeaderWhenExpanded?: boolean;
     /** Callback when state changes */
     onToggle?: (expanded: boolean) => void;
+    /** Accessibility hint for the toggle button */
+    accessibilityHint?: string;
 }
 
 export function CollapsibleSection({
@@ -35,6 +37,7 @@ export function CollapsibleSection({
     triggerLabel,
     hideHeaderWhenExpanded = false,
     onToggle,
+    accessibilityHint,
 }: CollapsibleSectionProps) {
     const [expanded, setExpanded] = useState(defaultExpanded);
 
@@ -51,7 +54,14 @@ export function CollapsibleSection({
     return (
         <View style={styles.container}>
             {showHeader && (
-                <Pressable onPress={handleToggle} style={styles.header}>
+                <Pressable
+                    onPress={handleToggle}
+                    style={styles.header}
+                    accessibilityRole="button"
+                    accessibilityLabel={displayLabel}
+                    accessibilityHint={accessibilityHint ?? (expanded ? 'Tap to collapse' : 'Tap to expand')}
+                    accessibilityState={{ expanded }}
+                >
                     <Text variant="label" color="primary600" style={styles.label}>
                         {displayLabel}
                     </Text>

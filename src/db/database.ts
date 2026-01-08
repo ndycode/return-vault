@@ -5,6 +5,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { runMigrations } from './migrations';
+import { dbLog } from '../utils/debug';
 
 const DATABASE_NAME = 'warranty-locker.db';
 
@@ -26,14 +27,14 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
     }
 
     initPromise = (async () => {
-        console.log('[DB] Opening database...');
+        dbLog.log('Opening database...');
         const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
 
-        console.log('[DB] Running migrations...');
+        dbLog.log('Running migrations...');
         await runMigrations(db);
 
         dbInstance = db;
-        console.log('[DB] Database ready');
+        dbLog.log('Database ready');
         return db;
     })();
 
@@ -49,7 +50,7 @@ export async function closeDatabase(): Promise<void> {
         await dbInstance.closeAsync();
         dbInstance = null;
         initPromise = null;
-        console.log('[DB] Database closed');
+        dbLog.log('Database closed');
     }
 }
 

@@ -8,7 +8,7 @@
  * - REFERENCE: Reduced opacity
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { Card, Text } from './primitives';
 import { DeadlineTag } from './DeadlineTag';
@@ -28,8 +28,8 @@ export function ItemCard({ purchase, onPress, urgencyTier }: ItemCardProps) {
     const hasReturnDeadline = purchase.returnDeadline !== null;
     const hasWarrantyExpiry = purchase.warrantyExpiry !== null;
 
-    // Visual weight based on urgency tier
-    const getContainerStyle = (): ViewStyle => {
+    // Memoize style calculations based on urgency tier
+    const containerStyle = useMemo((): ViewStyle => {
         switch (tier) {
             case 'urgent':
                 return styles.containerUrgent;
@@ -38,26 +38,34 @@ export function ItemCard({ purchase, onPress, urgencyTier }: ItemCardProps) {
             case 'reference':
                 return styles.containerReference;
         }
-    };
+    }, [tier]);
 
-    const getTitleColor = (): 'textPrimary' | 'textSecondary' => {
+    const titleColor = useMemo((): 'textPrimary' | 'textSecondary' => {
         return tier === 'reference' ? 'textSecondary' : 'textPrimary';
-    };
+    }, [tier]);
+
+    const textMutedStyle = useMemo(() => {
+        return tier === 'reference' ? styles.textMuted : undefined;
+    }, [tier]);
+
+    const thumbnailStyle = useMemo(() => {
+        return tier === 'urgent' ? styles.thumbnailUrgent : undefined;
+    }, [tier]);
 
     return (
-        <Card onPress={onPress} padding="md" style={getContainerStyle()}>
+        <Card onPress={onPress} padding="md" style={containerStyle}>
             <View style={styles.row}>
                 <View style={styles.thumbnail}>
                     <View style={[
                         styles.thumbnailPlaceholder,
-                        tier === 'urgent' && styles.thumbnailUrgent,
+                        thumbnailStyle,
                     ]} />
                 </View>
                 <View style={styles.content}>
                     <Text
                         variant="title"
                         numberOfLines={1}
-                        color={getTitleColor()}
+                        color={titleColor}
                     >
                         {purchase.name}
                     </Text>
@@ -66,7 +74,7 @@ export function ItemCard({ purchase, onPress, urgencyTier }: ItemCardProps) {
                             variant="secondary"
                             color="textSecondary"
                             numberOfLines={1}
-                            style={tier === 'reference' ? styles.textMuted : undefined}
+                            style={textMutedStyle}
                         >
                             {purchase.store}
                         </Text>

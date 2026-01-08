@@ -30,6 +30,10 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
     loading?: boolean;
     /** Full width */
     fullWidth?: boolean;
+    /** Accessibility label (defaults to title) */
+    accessibilityLabel?: string;
+    /** Accessibility hint for additional context */
+    accessibilityHint?: string;
 }
 
 export function Button({
@@ -39,6 +43,8 @@ export function Button({
     loading = false,
     fullWidth = false,
     disabled,
+    accessibilityLabel,
+    accessibilityHint,
     ...props
 }: ButtonProps) {
     const isDisabled = disabled || loading;
@@ -54,6 +60,10 @@ export function Button({
                 isDisabled && styles.disabled,
             ]}
             disabled={isDisabled}
+            accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel ?? title}
+            accessibilityHint={accessibilityHint}
+            accessibilityState={{ disabled: isDisabled, busy: loading }}
             {...props}
         >
             {loading ? (

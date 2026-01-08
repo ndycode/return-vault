@@ -19,6 +19,10 @@ export interface CardProps extends ViewProps {
     padding?: 'none' | 'sm' | 'md' | 'lg';
     /** Children */
     children: React.ReactNode;
+    /** Accessibility label for pressable cards */
+    accessibilityLabel?: string;
+    /** Accessibility hint for additional context */
+    accessibilityHint?: string;
 }
 
 export function Card({
@@ -26,6 +30,8 @@ export function Card({
     padding = 'md',
     style,
     children,
+    accessibilityLabel,
+    accessibilityHint,
     ...props
 }: CardProps) {
     const getPadding = () => {
@@ -55,6 +61,9 @@ export function Card({
             <Pressable
                 onPress={onPress}
                 style={({ pressed }) => pressed && styles.pressed}
+                accessibilityRole="button"
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint}
             >
                 {content}
             </Pressable>

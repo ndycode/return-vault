@@ -138,8 +138,10 @@ export function HomeScreen() {
         navigation.navigate('ItemDetail', { itemId: purchase.id });
     };
 
-    // Determine display data
-    const displayPurchases = searchQuery.trim() ? searchResults : purchases;
+    // Determine display data (memoized to prevent unnecessary recalculations)
+    const displayPurchases = useMemo(() => {
+        return searchQuery.trim() ? searchResults : purchases;
+    }, [searchQuery, searchResults, purchases]);
 
     // Group purchases by urgency tier
     const groupedPurchases = useMemo(() => {

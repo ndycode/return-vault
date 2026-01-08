@@ -7,6 +7,7 @@
 import { Platform } from 'react-native';
 import { PRO_SKU } from '../types/pro';
 import { useSettingsStore } from '../store/settingsStore';
+import { iapLog } from './debug';
 
 // IAP types (will be provided by expo-iap when installed)
 interface Product {
@@ -62,7 +63,7 @@ function isIAPAvailable(): boolean {
  */
 export async function initConnection(): Promise<boolean> {
     if (!isIAPAvailable()) {
-        console.log('[IAP] Not available on this platform');
+        iapLog.log('Not available on this platform');
         return false;
     }
 
@@ -77,11 +78,11 @@ export async function initConnection(): Promise<boolean> {
         // proProduct = products[0] ?? null;
         
         // Mock for development - simulates successful connection
-        console.log('[IAP] Connection initialized');
+        iapLog.log('Connection initialized');
         isConnected = true;
         return true;
     } catch (error) {
-        console.error('[IAP] Failed to initialize:', error);
+        iapLog.error('Failed to initialize', error);
         isConnected = false;
         return false;
     }
@@ -100,11 +101,11 @@ export async function endConnection(): Promise<void> {
         // In production with expo-iap:
         // await IapModule.endConnection();
         
-        console.log('[IAP] Connection ended');
+        iapLog.log('Connection ended');
         isConnected = false;
         proProduct = null;
     } catch (error) {
-        console.error('[IAP] Failed to end connection:', error);
+        iapLog.error('Failed to end connection', error);
     }
 }
 
@@ -146,7 +147,7 @@ export async function purchasePro(): Promise<PurchaseResult> {
         // return { success: true, purchase };
 
         // Mock for development
-        console.log('[IAP] Simulating purchase...');
+        iapLog.log('Simulating purchase...');
         
         // Simulate user decision (in real app, this comes from store UI)
         // For dev, we'll just succeed
@@ -162,7 +163,7 @@ export async function purchasePro(): Promise<PurchaseResult> {
         return { success: true, purchase: mockPurchase };
     } catch (error: unknown) {
         const err = error as Error & { code?: string };
-        console.error('[IAP] Purchase failed:', error);
+        iapLog.error('Purchase failed', error);
         
         // Check for user cancellation
         if (err.code === 'E_USER_CANCELLED' || 
@@ -205,14 +206,14 @@ export async function restorePro(): Promise<RestoreResult> {
         // return { success: true, hasPro };
 
         // Mock for development
-        console.log('[IAP] Simulating restore...');
+        iapLog.log('Simulating restore...');
         
         // Check if already pro (from a previous mock purchase)
         const currentIsPro = useSettingsStore.getState().isPro;
         
         return { success: true, hasPro: currentIsPro };
     } catch (error) {
-        console.error('[IAP] Restore failed:', error);
+        iapLog.error('Restore failed', error);
         return { success: false, hasPro: false, error: 'Failed to restore purchases' };
     }
 }
