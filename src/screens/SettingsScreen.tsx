@@ -56,8 +56,8 @@ interface SettingsRowProps {
 function SettingsRow({ label, value, onPress, rightElement, disabled, quiet }: SettingsRowProps) {
     const content = (
         <View style={[styles.row, disabled && styles.rowDisabled]}>
-            <Text 
-                variant={quiet ? 'secondary' : 'body'} 
+            <Text
+                variant={quiet ? 'secondary' : 'body'}
                 color={disabled ? 'textTertiary' : quiet ? 'textSecondary' : 'textPrimary'}
             >
                 {label}
@@ -211,7 +211,7 @@ export function SettingsScreen() {
     const notificationSettings = useSettingsStore((s) => s.notificationSettings);
     const updateNotificationSettings = useSettingsStore((s) => s.updateNotificationSettings);
     const isPro = useSettingsStore((s) => s.isPro);
-    
+
     const [isRestoring, setIsRestoring] = useState(false);
     const [showProModal, setShowProModal] = useState(false);
     const [proModalMessage, setProModalMessage] = useState('');
@@ -328,12 +328,15 @@ export function SettingsScreen() {
                 <Text variant="screenTitle">Settings</Text>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentInsetAdjustmentBehavior="never"
+            >
                 {/* ─────────────────────────────────────────────
                     SECTION 1: NOTIFICATIONS (Daily behavior)
                     Most frequently adjusted - always visible
                 ───────────────────────────────────────────── */}
-                
+
                 {/* Permission banner - context-dependent */}
                 {hasPermission === false && (
                     <View style={styles.permissionBanner}>
@@ -427,15 +430,15 @@ export function SettingsScreen() {
                             defaultExpanded={false}
                         >
                             <View style={styles.dataContent}>
-                                <SettingsRow 
-                                    label="Export backup" 
+                                <SettingsRow
+                                    label="Export backup"
                                     onPress={handleExport}
                                     disabled={!isPro}
                                     quiet={!isPro}
                                 />
                                 <Divider spacing="none" />
-                                <SettingsRow 
-                                    label="Import backup" 
+                                <SettingsRow
+                                    label="Import backup"
                                     onPress={handleImport}
                                     disabled={!isPro}
                                     quiet={!isPro}
@@ -535,7 +538,7 @@ export function SettingsScreen() {
 
 const styles = StyleSheet.create({
     header: {
-        paddingTop: spacing.xl, // 24px
+        paddingTop: spacing.lg, // 16px
         paddingBottom: spacing.lg, // 16px
     },
     permissionBanner: {

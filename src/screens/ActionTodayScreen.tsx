@@ -12,24 +12,20 @@
  * If nothing urgent, show calm "All clear" state.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet, SectionList, RefreshControl } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRouter } from 'expo-router';
 import { ScreenContainer, Text, Card } from '../components/primitives';
 import { ItemCard } from '../components/ItemCard';
 import { EmptyState } from '../components/EmptyState';
 import { usePurchases } from '../hooks/usePurchases';
 import { Purchase } from '../types';
-import { HomeStackParamList } from '../navigation/HomeStack';
 import { colors, spacing } from '../design';
 import {
     filterUrgent,
     getUrgencyClassification,
     sortByUrgency,
 } from '../utils/urgency';
-
-type NavigationProp = NativeStackNavigationProp<HomeStackParamList, 'Home'>;
 
 interface Section {
     title: string;
@@ -38,15 +34,10 @@ interface Section {
 }
 
 export function ActionTodayScreen() {
-    const navigation = useNavigation<NavigationProp>();
-    const { purchases, isLoading, refresh } = usePurchases({ status: 'active' });
+    const router = useRouter();
+    const { purchases, isLoading, isRefreshing, refresh } = usePurchases({ status: 'active' });
 
-    // Refresh on screen focus
-    useFocusEffect(
-        useCallback(() => {
-            refresh();
-        }, [refresh])
-    );
+
 
     // Filter to only urgent items and categorize
     const { overdueItems, dueSoonItems, totalCount } = useMemo(() => {
@@ -72,7 +63,7 @@ export function ActionTodayScreen() {
     }, [purchases]);
 
     const handleItemPress = (purchase: Purchase) => {
-        navigation.navigate('ItemDetail', { itemId: purchase.id });
+        router.push(`/${purchase.id}`);
     };
 
     // Build sections - overdue first, then due soon
@@ -165,6 +156,7 @@ export function ActionTodayScreen() {
                     renderItem={renderItem}
                     renderSectionHeader={renderSectionHeader}
                     contentContainerStyle={styles.listContent}
+                    contentInsetAdjustmentBehavior="never"
                     showsVerticalScrollIndicator={false}
                     stickySectionHeadersEnabled={false}
                     refreshControl={
@@ -181,7 +173,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingTop: spacing.lg,
-        paddingBottom: spacing.md,
+        paddingBottom: spacing.lg,
     },
     badge: {
         backgroundColor: colors.error500,
@@ -205,7 +197,7 @@ const styles = StyleSheet.create({
         marginLeft: spacing.sm,
     },
     listContent: {
-        paddingBottom: spacing.xxl,
+        paddingBottom: 100, // Tab bar clearance
     },
     itemContainer: {
         marginBottom: spacing.sm,

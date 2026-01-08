@@ -4,12 +4,15 @@
  */
 
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeStack } from './HomeStack';
 import { SettingsStack } from './SettingsStack';
 import { ActionTodayScreen, AddItemScreen } from '../screens';
-import { colors, spacing, typography, radius } from '../design';
+import { IconSymbol, type IconSymbolName } from '../components/primitives';
+import { colors, spacing, typography } from '../design';
+import { HapticTab } from './HapticTab';
+import TabBarBackground from './TabBarBackground';
 
 export type TabParamList = {
     HomeTab: undefined;
@@ -20,29 +23,15 @@ export type TabParamList = {
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
-// Simple icon components (placeholder - will use proper icons later)
-function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-    const iconMap: Record<string, string> = {
-        HomeTab: focused ? '⬤' : '○',
-        ActionToday: focused ? '⬤' : '○',
-        Add: '+',
-        SettingsTab: focused ? '⬤' : '○',
-    };
+const TAB_ICONS: Record<keyof TabParamList, IconSymbolName> = {
+    HomeTab: 'house.fill',
+    ActionToday: 'bell.fill',
+    Add: 'plus.circle.fill',
+    SettingsTab: 'gearshape',
+};
 
-    return (
-        <View style={[styles.iconContainer, name === 'Add' && styles.addIconContainer]}>
-            <View style={styles.icon}>
-                <View
-                    style={{
-                        width: name === 'Add' ? 24 : 8,
-                        height: name === 'Add' ? 24 : 8,
-                        backgroundColor: focused ? colors.primary600 : colors.gray400,
-                        borderRadius: name === 'Add' ? 4 : 4,
-                    }}
-                />
-            </View>
-        </View>
-    );
+function TabIcon({ name, color, size }: { name: keyof TabParamList; color: string; size: number }) {
+    return <IconSymbol name={TAB_ICONS[name]} color={color} size={size} />;
 }
 
 export function TabNavigator() {
@@ -50,10 +39,17 @@ export function TabNavigator() {
         <Tab.Navigator
             screenOptions={{
                 headerShown: false,
-                tabBarStyle: styles.tabBar,
+                tabBarStyle: [
+                    styles.tabBar,
+                    Platform.OS === 'ios' && styles.tabBarBlur,
+                ],
                 tabBarActiveTintColor: colors.primary600,
                 tabBarInactiveTintColor: colors.gray400,
                 tabBarLabelStyle: styles.tabLabel,
+                tabBarButton: HapticTab,
+                tabBarBackground: TabBarBackground,
+                tabBarItemStyle: styles.tabItem,
+                tabBarIconStyle: styles.tabIcon,
             }}
         >
             <Tab.Screen
@@ -61,7 +57,9 @@ export function TabNavigator() {
                 component={HomeStack}
                 options={{
                     title: 'Purchases',
-                    tabBarIcon: ({ focused }) => <TabIcon name="HomeTab" focused={focused} />,
+                    tabBarIcon: ({ color, size }) => (
+                        <TabIcon name="HomeTab" color={color} size={size} />
+                    ),
                 }}
             />
             <Tab.Screen
@@ -69,7 +67,9 @@ export function TabNavigator() {
                 component={ActionTodayScreen}
                 options={{
                     title: 'Action',
-                    tabBarIcon: ({ focused }) => <TabIcon name="ActionToday" focused={focused} />,
+                    tabBarIcon: ({ color, size }) => (
+                        <TabIcon name="ActionToday" color={color} size={size} />
+                    ),
                 }}
             />
             <Tab.Screen
@@ -77,7 +77,9 @@ export function TabNavigator() {
                 component={AddItemScreen}
                 options={{
                     title: 'Add',
-                    tabBarIcon: ({ focused }) => <TabIcon name="Add" focused={focused} />,
+                    tabBarIcon: ({ color, size }) => (
+                        <TabIcon name="Add" color={color} size={size} />
+                    ),
                 }}
             />
             <Tab.Screen
@@ -85,7 +87,9 @@ export function TabNavigator() {
                 component={SettingsStack}
                 options={{
                     title: 'Settings',
-                    tabBarIcon: ({ focused }) => <TabIcon name="SettingsTab" focused={focused} />,
+                    tabBarIcon: ({ color, size }) => (
+                        <TabIcon name="SettingsTab" color={color} size={size} />
+                    ),
                 }}
             />
         </Tab.Navigator>
@@ -97,25 +101,24 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
         borderTopColor: colors.border,
         borderTopWidth: StyleSheet.hairlineWidth,
+        height: Platform.select({ ios: 49, android: 56 }),
         paddingTop: spacing.xs,
-        height: 80,
+        paddingBottom: Platform.OS === 'ios' ? spacing.xs : 0,
+    },
+    tabBarBlur: {
+        backgroundColor: colors.surfaceTransparent,
     },
     tabLabel: {
-        ...typography.meta,
+        fontSize: 10,
+        fontWeight: '500' as const,
+        lineHeight: 12,
+        letterSpacing: 0,
         marginTop: spacing.xs,
     },
-    iconContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 32,
-        height: 32,
+    tabItem: {
+        paddingBottom: spacing.xs,
     },
-    addIconContainer: {
-        backgroundColor: colors.primary600,
-        borderRadius: radius.md,
-    },
-    icon: {
-        alignItems: 'center',
-        justifyContent: 'center',
+    tabIcon: {
+        marginBottom: spacing.xxs,
     },
 });

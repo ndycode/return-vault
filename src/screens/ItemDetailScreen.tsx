@@ -23,7 +23,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Image } from 'react-native';
-import { useRoute, useNavigation, RouteProp, CommonActions } from '@react-navigation/native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScreenContainer, Text, Card, Button, Divider, CollapsibleSection, SystemStatus } from '../components/primitives';
 import { DeadlineTag } from '../components/DeadlineTag';
 import {
@@ -35,15 +35,12 @@ import {
 } from '../db';
 import { shareProofPacket } from '../services/exportService';
 import { Purchase, Attachment } from '../types';
-import { HomeStackParamList } from '../navigation/HomeStack';
 import { formatDisplayDate } from '../utils/dateUtils';
 import { getUrgencyClassification } from '../utils/urgency';
 import { ERROR, ALERT_TITLES, CONFIRM, REASSURANCE } from '../utils/copy';
 import { colors, spacing, radius } from '../design';
 import { useSettingsStore, canUseProFeature } from '../store/settingsStore';
 import { useUndoStore } from '../store/undoStore';
-
-type DetailRouteProp = RouteProp<HomeStackParamList, 'ItemDetail'>;
 
 interface DetailRowProps {
     label: string;
@@ -98,9 +95,8 @@ function UrgentBanner({ urgency }: { urgency: ReturnType<typeof getUrgencyClassi
 }
 
 export function ItemDetailScreen() {
-    const route = useRoute<DetailRouteProp>();
-    const navigation = useNavigation();
-    const { itemId } = route.params;
+    const { itemId } = useLocalSearchParams<{ itemId: string }>();
+    const router = useRouter();
     const isPro = useSettingsStore((s) => s.isPro);
     const showUndo = useUndoStore((s) => s.showUndo);
 
@@ -174,7 +170,7 @@ export function ItemDetailScreen() {
             showUndo(`"${purchase.name}" archived`, async () => {
                 await restorePurchase(purchase.id);
             });
-            navigation.goBack();
+            router.back();
         } catch (err) {
             Alert.alert(ALERT_TITLES.ERROR, ERROR.ARCHIVE_FAILED);
         }
@@ -194,7 +190,7 @@ export function ItemDetailScreen() {
                     onPress: async () => {
                         try {
                             await deletePurchase(purchase.id);
-                            navigation.goBack();
+                            router.back();
                         } catch (err) {
                             Alert.alert(ALERT_TITLES.ERROR, ERROR.DELETE_FAILED);
                         }
@@ -221,7 +217,10 @@ export function ItemDetailScreen() {
 
     return (
         <ScreenContainer>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentInsetAdjustmentBehavior="never"
+            >
                 {/* ─────────────────────────────────────────────
                     SECTION 1: URGENT BANNER (context-dependent)
                     Only appears when action is required
@@ -351,7 +350,7 @@ export function ItemDetailScreen() {
 const styles = StyleSheet.create({
     header: {
         paddingTop: spacing.lg,
-        paddingBottom: spacing.sm,
+        paddingBottom: spacing.lg,
     },
     archivedBadge: {
         backgroundColor: colors.gray100,

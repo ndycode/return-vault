@@ -1,6 +1,6 @@
 /**
  * Chip Primitive
- * Selectable option chip for presets
+ * Selectable option chip with size variants
  */
 
 import React from 'react';
@@ -17,6 +17,8 @@ export interface ChipProps {
     onPress?: () => void;
     /** Disabled state */
     disabled?: boolean;
+    /** Size variant */
+    size?: 'small' | 'medium';
 }
 
 export function Chip({
@@ -24,20 +26,24 @@ export function Chip({
     selected = false,
     onPress,
     disabled = false,
+    size = 'medium',
 }: ChipProps) {
+    const isSmall = size === 'small';
+
     return (
         <Pressable
             onPress={onPress}
             disabled={disabled}
             style={({ pressed }) => [
                 styles.chip,
+                isSmall && styles.chipSmall,
                 selected && styles.chipSelected,
                 pressed && styles.chipPressed,
                 disabled && styles.chipDisabled,
             ]}
         >
             <Text
-                variant="label"
+                variant={isSmall ? 'meta' : 'label'}
                 color={selected ? 'textInverse' : 'textPrimary'}
             >
                 {label}
@@ -54,6 +60,10 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         borderWidth: 1,
         borderColor: colors.border,
+    },
+    chipSmall: {
+        paddingHorizontal: spacing.md, // 12px
+        paddingVertical: spacing.xs, // 4px
     },
     chipSelected: {
         backgroundColor: colors.primary600,

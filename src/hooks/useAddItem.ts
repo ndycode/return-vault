@@ -17,7 +17,8 @@ import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { createPurchase, createAttachment, updatePurchase, getPurchaseCounts } from '../db';
-import { TabParamList, DEFAULT_LANDING_SCREEN } from '../navigation';
+import { type TabParamList } from '../navigation/TabNavigator';
+import { DEFAULT_LANDING_SCREEN } from '../navigation/types';
 import { capturePhoto, pickPhoto, saveImageToDocuments } from '../services/attachmentService';
 import {
     scheduleNotificationsForPurchase,
@@ -106,7 +107,7 @@ export function useAddItem() {
     const handleStoreChange = useCallback((storeName: string) => {
         setState((prev) => {
             const storeDefaults = getStoreDefaults(storeName);
-            
+
             if (storeDefaults) {
                 // Apply store-specific defaults
                 return {
@@ -117,7 +118,7 @@ export function useAddItem() {
                     storeDefaultsApplied: true,
                 };
             }
-            
+
             // No matching store - just update the field
             return {
                 ...prev,
@@ -193,7 +194,7 @@ export function useAddItem() {
             // Check purchase limit before saving (for free users)
             const counts = await getPurchaseCounts();
             const canAdd = canUseProFeature('UNLIMITED_ITEMS', isPro, counts.active);
-            
+
             if (!canAdd) {
                 setState((prev) => ({
                     ...prev,

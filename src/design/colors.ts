@@ -67,6 +67,7 @@ export const colors = {
     background: '#FFFFFF',
     surface: '#F1F5F9', // gray100 - more contrast for zoning
     surfaceElevated: '#FFFFFF',
+    surfaceTransparent: 'transparent',
     
     // ─────────────────────────────────────
     // SEMANTIC BORDERS

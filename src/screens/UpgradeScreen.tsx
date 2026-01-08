@@ -82,9 +82,9 @@ export function UpgradeScreen() {
                         All features unlocked. Your data is stored locally on this device.
                     </Text>
                     <View style={styles.successButton}>
-                        <Button 
-                            title="Done" 
-                            onPress={() => navigation.goBack()} 
+                        <Button
+                            title="Done"
+                            onPress={() => navigation.goBack()}
                         />
                     </View>
                 </View>
@@ -94,8 +94,9 @@ export function UpgradeScreen() {
 
     return (
         <ScreenContainer>
-            <ScrollView 
+            <ScrollView
                 contentContainerStyle={styles.scrollContent}
+                contentInsetAdjustmentBehavior="never"
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.header}>
@@ -145,7 +146,7 @@ export function UpgradeScreen() {
                             fullWidth
                         />
                     </View>
-                    
+
                     <View style={styles.restoreButton}>
                         <Button
                             title={isRestoring ? "Restoring..." : "Restore Purchases"}

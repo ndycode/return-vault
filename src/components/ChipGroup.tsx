@@ -1,10 +1,10 @@
 /**
  * ChipGroup Component
- * Group of selectable chips with single selection
+ * Compact wrapping chip selector for options
  */
 
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Chip } from './primitives';
 import { spacing } from '../design';
 
@@ -18,6 +18,8 @@ interface ChipGroupProps<T> {
     value: T | null;
     onChange: (value: T | null) => void;
     allowDeselect?: boolean;
+    /** Use compact size chips */
+    compact?: boolean;
 }
 
 export function ChipGroup<T>({
@@ -25,6 +27,7 @@ export function ChipGroup<T>({
     value,
     onChange,
     allowDeselect = true,
+    compact = false,
 }: ChipGroupProps<T>) {
     const handlePress = (optionValue: T) => {
         if (value === optionValue && allowDeselect) {
@@ -35,30 +38,27 @@ export function ChipGroup<T>({
     };
 
     return (
-        <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.container}
-        >
+        <View style={[styles.container, compact && styles.containerCompact]}>
             {options.map((option, index) => (
-                <View key={index} style={styles.chip}>
-                    <Chip
-                        label={option.label}
-                        selected={value === option.value}
-                        onPress={() => handlePress(option.value)}
-                    />
-                </View>
+                <Chip
+                    key={index}
+                    label={option.label}
+                    selected={value === option.value}
+                    onPress={() => handlePress(option.value)}
+                    size={compact ? 'small' : 'medium'}
+                />
             ))}
-        </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         gap: spacing.sm,
     },
-    chip: {
-        marginRight: spacing.xs,
+    containerCompact: {
+        gap: spacing.xs,
     },
 });

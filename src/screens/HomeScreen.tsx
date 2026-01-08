@@ -10,10 +10,16 @@
  * When no urgent items: Show calm "Nothing urgent" state
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, SectionList, RefreshControl } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
+import {
+    View,
+    StyleSheet,
+    SectionList,
+    RefreshControl,
+    SectionListData,
+    SectionListRenderItemInfo,
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import { ScreenContainer, Text, Card } from '../components/primitives';
 import { SearchBar } from '../components/SearchBar';
 import { FilterChips } from '../components/FilterChips';
@@ -21,7 +27,6 @@ import { ItemCard } from '../components/ItemCard';
 import { EmptyState } from '../components/EmptyState';
 import { usePurchases, useSearchPurchases } from '../hooks/usePurchases';
 import { Purchase, PurchaseStatus } from '../types';
-import { HomeStackParamList } from '../navigation/HomeStack';
 import { colors, spacing } from '../design';
 import {
     groupByUrgency,
@@ -32,8 +37,6 @@ import {
 } from '../utils/urgency';
 
 type FilterValue = PurchaseStatus | 'all';
-
-type NavigationProp = NativeStackNavigationProp<HomeStackParamList, 'Home'>;
 
 interface Section {
     title: string;
@@ -105,20 +108,15 @@ function NothingUrgentState() {
 }
 
 export function HomeScreen() {
-    const navigation = useNavigation<NavigationProp>();
+    const router = useRouter();
     const [filter, setFilter] = useState<FilterValue>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const listRef = useRef<SectionList<Purchase, Section>>(null);
 
     const statusFilter = filter === 'all' ? undefined : filter;
     const { purchases, isLoading, refresh } = usePurchases({ status: statusFilter });
     const { results: searchResults, search, clear: clearSearch } = useSearchPurchases();
 
-    // Refresh on screen focus
-    useFocusEffect(
-        useCallback(() => {
-            refresh();
-        }, [refresh])
-    );
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
@@ -135,13 +133,11 @@ export function HomeScreen() {
     };
 
     const handleItemPress = (purchase: Purchase) => {
-        navigation.navigate('ItemDetail', { itemId: purchase.id });
+        router.push(`/${purchase.id}`);
     };
 
-    // Determine display data (memoized to prevent unnecessary recalculations)
-    const displayPurchases = useMemo(() => {
-        return searchQuery.trim() ? searchResults : purchases;
-    }, [searchQuery, searchResults, purchases]);
+    // Determine display data
+    const displayPurchases = searchQuery.trim() ? searchResults : purchases;
 
     // Group purchases by urgency tier
     const groupedPurchases = useMemo(() => {
@@ -185,12 +181,11 @@ export function HomeScreen() {
 
     const urgentCount = countUrgent(displayPurchases);
     const hasUrgent = urgentCount > 0;
-
-    const renderSectionHeader = ({ section }: { section: Section }) => (
+    const renderSectionHeader = ({ section }: { section: SectionListData<Purchase, Section> }) => (
         <SectionHeader section={section} />
     );
 
-    const renderItem = ({ item, section }: { item: Purchase; section: Section }) => (
+    const renderItem = ({ item, section }: SectionListRenderItemInfo<Purchase, Section>) => (
         <View style={[
             styles.itemContainer,
             section.tier === 'reference' && styles.itemContainerReference,
@@ -237,6 +232,10 @@ export function HomeScreen() {
     );
 
     const renderEmpty = () => {
+        if (isLoading) {
+            return null;
+        }
+
         if (searchQuery.trim()) {
             return (
                 <EmptyState
@@ -257,6 +256,7 @@ export function HomeScreen() {
     return (
         <ScreenContainer>
             <SectionList
+                ref={listRef}
                 sections={sections}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
@@ -264,6 +264,7 @@ export function HomeScreen() {
                 ListHeaderComponent={renderListHeader}
                 ListEmptyComponent={renderEmpty}
                 contentContainerStyle={styles.listContent}
+                contentInsetAdjustmentBehavior="never"
                 showsVerticalScrollIndicator={false}
                 stickySectionHeadersEnabled={false}
                 refreshControl={
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: spacing.xl, // 24px
+        paddingTop: spacing.lg, // 16px
         paddingBottom: spacing.lg, // 16px
     },
     urgentBadge: {
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg, // 16px
     },
     listContent: {
-        paddingBottom: spacing.xxxl,
+        paddingBottom: 100, // Tab bar clearance
         flexGrow: 1,
     },
     sectionHeader: {

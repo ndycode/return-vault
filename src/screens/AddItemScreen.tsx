@@ -12,21 +12,16 @@
 
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Modal, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScreenContainer, Text, Input, Button, Card, CollapsibleSection } from '../components/primitives';
-import { PhotoCapture } from '../components/PhotoCapture';
-import { ChipGroup } from '../components/ChipGroup';
-import { DatePickerField } from '../components/DatePickerField';
+import { useRouter } from 'expo-router';
+import {
+    ScreenContainer, Text, Input, Button, Card, CollapsibleSection,
+    PhotoCapture, ChipGroup, DatePickerField
+} from '../components';
 import { useAddItem } from '../hooks/useAddItem';
 import { colors, spacing } from '../design';
 import { useSettingsStore } from '../store/settingsStore';
 import { FREE_ITEM_LIMIT } from '../types/pro';
 
-type RootStackParamList = {
-    Settings: undefined;
-    Upgrade: undefined;
-};
 
 const RETURN_OPTIONS = [
     { label: 'None', value: null },
@@ -45,7 +40,7 @@ const WARRANTY_OPTIONS = [
 ];
 
 export function AddItemScreen() {
-    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const router = useRouter();
     const {
         state,
         updateField,
@@ -56,13 +51,13 @@ export function AddItemScreen() {
         dismissLimitModal,
     } = useAddItem();
     const isPro = useSettingsStore((s) => s.isPro);
-    
+
     // Track if advanced fields section is expanded
     const [showAdvanced, setShowAdvanced] = useState(false);
 
     const handleUpgrade = () => {
         dismissLimitModal();
-        navigation.navigate('Upgrade');
+        router.push('/upgrade');
     };
 
     // Auto-expand if any advanced field has data (preserve on navigation)
@@ -88,14 +83,15 @@ export function AddItemScreen() {
                 <ScrollView
                     style={styles.content}
                     contentContainerStyle={styles.contentContainer}
+                    contentInsetAdjustmentBehavior="never"
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* ─────────────────────────────────────────────
-                        ESSENTIAL FIELDS (Always visible - 4 max)
+                        ESSENTIAL FIELDS (Always visible - compact layout)
                         Required for minimum viable purchase entry
                     ───────────────────────────────────────────── */}
-                    
+
                     {/* 1. Photo capture - quick proof */}
                     <PhotoCapture
                         uri={state.photoUri}
@@ -114,7 +110,7 @@ export function AddItemScreen() {
                         />
                     </View>
 
-                    {/* 3. Purchase date - essential for deadline calculation */}
+                    {/* 3. Purchase date */}
                     <View style={styles.formGroup}>
                         <DatePickerField
                             label="Purchase date"
@@ -123,9 +119,9 @@ export function AddItemScreen() {
                         />
                     </View>
 
-                    {/* 4. Return window - primary urgency driver */}
+                    {/* 4. Return window */}
                     <View style={styles.formGroup}>
-                        <Text variant="label" color="textSecondary" style={styles.label}>
+                        <Text variant="label" color="textSecondary" style={styles.labelCompact}>
                             Return window
                         </Text>
                         <ChipGroup
@@ -165,7 +161,7 @@ export function AddItemScreen() {
 
                             {/* Warranty */}
                             <View style={styles.advancedField}>
-                                <Text variant="label" color="textSecondary" style={styles.label}>
+                                <Text variant="label" color="textSecondary" style={styles.labelCompact}>
                                     Warranty
                                 </Text>
                                 <ChipGroup
@@ -264,19 +260,30 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingTop: spacing.lg,
-        paddingBottom: spacing.md,
+        paddingBottom: spacing.lg,
     },
     content: {
         flex: 1,
     },
     contentContainer: {
-        paddingBottom: spacing.lg,
+        paddingBottom: 100, // Extra space for footer + tab bar
     },
     formGroup: {
-        marginTop: spacing.md,
+        marginTop: spacing.sm, // Compact spacing
+    },
+    twoColumnRow: {
+        flexDirection: 'row',
+        gap: spacing.md,
+        marginTop: spacing.sm,
+    },
+    columnHalf: {
+        flex: 1,
     },
     label: {
         marginBottom: spacing.sm,
+    },
+    labelCompact: {
+        marginBottom: spacing.xs,
     },
     advancedSection: {
         marginTop: spacing.xl,
@@ -291,7 +298,9 @@ const styles = StyleSheet.create({
         marginTop: spacing.xs,
     },
     footer: {
-        paddingVertical: spacing.md,
+        paddingTop: spacing.md,
+        paddingBottom: 60, // Tab bar clearance
+        backgroundColor: colors.background,
     },
     modalOverlay: {
         flex: 1,

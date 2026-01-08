@@ -4,6 +4,7 @@
  */
 
 export { Text, type TextProps } from './Text';
+export { IconSymbol, type IconSymbolProps, type IconSymbolName } from './IconSymbol';
 export { Button, type ButtonProps } from './Button';
 export { ScreenContainer, type ScreenContainerProps } from './ScreenContainer';
 export { Card, type CardProps } from './Card';
