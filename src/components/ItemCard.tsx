@@ -3,9 +3,9 @@
  * Purchase list item card with urgency-aware styling
  *
  * VISUAL HIERARCHY:
- * - URGENT: Full opacity, stronger visual weight
- * - UPCOMING: Slightly reduced opacity (0.9)
- * - REFERENCE: Reduced opacity (0.7), lighter weight
+ * - URGENT: Full opacity, accent border
+ * - UPCOMING: Normal appearance
+ * - REFERENCE: Reduced opacity
  */
 
 import React from 'react';
@@ -55,7 +55,7 @@ export function ItemCard({ purchase, onPress, urgencyTier }: ItemCardProps) {
                 </View>
                 <View style={styles.content}>
                     <Text
-                        variant="sectionHeader"
+                        variant="title"
                         numberOfLines={1}
                         color={getTitleColor()}
                     >
@@ -92,9 +92,9 @@ const styles = StyleSheet.create({
     thumbnail: {
         width: 48,
         height: 48,
-        borderRadius: radius.md,
+        borderRadius: radius.sm, // 6px
         overflow: 'hidden',
-        marginRight: spacing.sm,
+        marginRight: spacing.md, // 12px
     },
     thumbnailPlaceholder: {
         width: '100%',
@@ -120,10 +120,10 @@ const styles = StyleSheet.create({
         borderLeftColor: colors.error500,
     },
     containerUpcoming: {
-        // Normal appearance, no special border
+        // Normal appearance
     },
     containerReference: {
-        opacity: 0.75,
+        opacity: 0.7,
     },
     textMuted: {
         opacity: 0.8,

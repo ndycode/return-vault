@@ -75,14 +75,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.lg, // 16px
         minHeight: 48,
     },
     disabled: {
         opacity: 0.5,
     },
     pressed: {
-        backgroundColor: colors.gray50,
+        backgroundColor: colors.surface,
     },
     label: {
         flex: 1,

@@ -65,7 +65,7 @@ export const colors = {
     // SEMANTIC SURFACES
     // ─────────────────────────────────────
     background: '#FFFFFF',
-    surface: '#F8FAFC', // gray50
+    surface: '#F1F5F9', // gray100 - more contrast for zoning
     surfaceElevated: '#FFFFFF',
     
     // ─────────────────────────────────────
@@ -79,7 +79,7 @@ export const colors = {
     // SEMANTIC TEXT
     // ─────────────────────────────────────
     textPrimary: '#0F172A', // gray900
-    textSecondary: '#64748B', // gray500
+    textSecondary: '#475569', // gray600 - stronger for legibility
     textTertiary: '#94A3B8', // gray400
     textInverse: '#FFFFFF',
     textLink: '#2563EB', // primary500

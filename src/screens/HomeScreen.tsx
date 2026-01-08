@@ -76,11 +76,12 @@ function SectionHeader({ section }: { section: Section }) {
             <View style={[styles.sectionIndicator, { backgroundColor: getIndicatorColor() }]} />
             <Text
                 variant="sectionHeader"
+                color="textSecondary"
                 style={{ opacity: getTitleOpacity() }}
             >
-                {section.title}
+                {section.title.toUpperCase()}
             </Text>
-            <Text variant="meta" color="textSecondary" style={styles.sectionCount}>
+            <Text variant="meta" color="textTertiary" style={styles.sectionCount}>
                 {section.data.length}
             </Text>
         </View>
@@ -275,8 +276,8 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: spacing.lg,
-        paddingBottom: spacing.md,
+        paddingTop: spacing.xl, // 24px
+        paddingBottom: spacing.lg, // 16px
     },
     urgentBadge: {
         backgroundColor: colors.error500,
@@ -286,10 +287,10 @@ const styles = StyleSheet.create({
         marginLeft: spacing.sm,
     },
     searchContainer: {
-        marginBottom: spacing.md,
+        marginBottom: spacing.md, // 12px
     },
     filterContainer: {
-        marginBottom: spacing.lg,
+        marginBottom: spacing.lg, // 16px
     },
     listContent: {
         paddingBottom: spacing.xxxl,
@@ -298,28 +299,28 @@ const styles = StyleSheet.create({
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: spacing.md,
-        paddingTop: spacing.lg,
+        paddingVertical: spacing.md, // 12px
+        paddingTop: spacing.lg, // 16px
     },
     sectionIndicator: {
-        width: 4,
-        height: 20,
-        borderRadius: 2,
+        width: 3,
+        height: 14,
+        borderRadius: 1,
         marginRight: spacing.sm,
     },
     sectionCount: {
         marginLeft: spacing.sm,
     },
     itemContainer: {
-        marginBottom: spacing.md,
+        marginBottom: spacing.md, // 12px
     },
     itemContainerReference: {
         opacity: 0.7,
     },
     calmCard: {
-        marginBottom: spacing.lg,
+        marginBottom: spacing.lg, // 16px
         alignItems: 'center',
-        paddingVertical: spacing.xl,
+        paddingVertical: spacing.xl, // 24px
     },
     calmTitle: {
         marginBottom: spacing.xs,

@@ -44,8 +44,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.xxl,
+        paddingHorizontal: spacing.xl, // 24px
+        paddingVertical: spacing.xxxl, // 48px
     },
     iconContainer: {
         width: 64,
@@ -54,18 +54,18 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray100,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: spacing.md,
+        marginBottom: spacing.lg, // 16px
     },
     icon: {
         width: 32,
         height: 32,
         backgroundColor: colors.gray200,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
     },
     title: {
         marginBottom: spacing.sm,
     },
     message: {
-        marginBottom: spacing.md,
+        marginBottom: spacing.lg, // 16px
     },
 });

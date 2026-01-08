@@ -1,6 +1,11 @@
 /**
  * SectionHeader Primitive
- * Consistent section titles across screens
+ * Consistent section dividers - classic finance/enterprise pattern
+ * 
+ * VISUAL TREATMENT:
+ * - 13px uppercase with positive letter-spacing
+ * - Optional left-edge indicator for urgency
+ * - Count badge in tertiary weight
  */
 
 import React from 'react';
@@ -9,7 +14,7 @@ import { Text } from './Text';
 import { colors, spacing } from '../../design';
 
 export interface SectionHeaderProps extends ViewProps {
-    /** Section title (uppercase) */
+    /** Section title (will be uppercased) */
     title: string;
     /** Optional count badge */
     count?: number;
@@ -42,11 +47,11 @@ export function SectionHeader({
             {accent !== 'default' && (
                 <View style={[styles.indicator, { backgroundColor: getAccentColor() }]} />
             )}
-            <Text variant="label" color="textSecondary" style={styles.title}>
+            <Text variant="sectionHeader" color="textSecondary">
                 {title.toUpperCase()}
             </Text>
             {count !== undefined && (
-                <Text variant="label" color="textTertiary" style={styles.count}>
+                <Text variant="meta" color="textTertiary" style={styles.count}>
                     {count}
                 </Text>
             )}
@@ -58,16 +63,13 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: spacing.sm,
+        paddingVertical: spacing.md, // 12px
     },
     indicator: {
         width: 3,
-        height: 16,
-        borderRadius: 2,
+        height: 14,
+        borderRadius: 1,
         marginRight: spacing.sm,
-    },
-    title: {
-        letterSpacing: 0.5,
     },
     count: {
         marginLeft: spacing.sm,

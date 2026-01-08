@@ -83,9 +83,9 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         borderWidth: 1,
         borderColor: colors.border,
-        borderRadius: radius.md,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.md,
+        borderRadius: radius.sm, // 6px
+        paddingHorizontal: spacing.lg, // 16px
+        paddingVertical: spacing.md, // 12px
         minHeight: 48,
     },
     inputFocused: {

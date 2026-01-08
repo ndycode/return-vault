@@ -1,29 +1,33 @@
 /**
  * Design System - Spacing Tokens
- * 8pt grid system (strict)
+ * 4pt base grid, luxury-tight rhythm
  * 
  * USAGE RULES:
- * - All spacing must use these tokens
- * - No inline spacing values
- * - Components use sm/md/lg for internal padding
- * - Screens use lg/xl for section gaps
+ * - Screen horizontal padding: xl (24px)
+ * - Section vertical gap: xxl (32px)
+ * - Card internal padding: lg (16px)
+ * - Form field vertical gap: md (12px)
+ * - Related element gap: sm (8px)
+ * - Micro adjustments: xs (4px) or xxs (2px)
  */
 
 export const spacing = {
-    /** 4px - micro adjustments only */
+    /** 2px - hairline gaps, micro adjustments */
+    xxs: 2,
+    /** 4px - icon-text gap, tight internal */
     xs: 4,
-    /** 8px - tight spacing */
+    /** 8px - component internal padding (tight) */
     sm: 8,
-    /** 16px - standard spacing */
-    md: 16,
-    /** 24px - section spacing */
-    lg: 24,
-    /** 32px - large gaps */
-    xl: 32,
-    /** 48px - screen padding bottom */
-    xxl: 48,
-    /** 64px - reserved */
-    xxxl: 64,
+    /** 12px - standard gaps, form fields */
+    md: 12,
+    /** 16px - card padding, section gaps */
+    lg: 16,
+    /** 24px - screen horizontal padding */
+    xl: 24,
+    /** 32px - major section breaks */
+    xxl: 32,
+    /** 48px - screen bottom padding */
+    xxxl: 48,
 } as const;
 
 export type SpacingToken = keyof typeof spacing;

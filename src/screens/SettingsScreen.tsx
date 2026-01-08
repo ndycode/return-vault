@@ -535,29 +535,29 @@ export function SettingsScreen() {
 
 const styles = StyleSheet.create({
     header: {
-        paddingTop: spacing.lg,
-        paddingBottom: spacing.md,
+        paddingTop: spacing.xl, // 24px
+        paddingBottom: spacing.lg, // 16px
     },
     permissionBanner: {
         backgroundColor: colors.warning50,
-        padding: spacing.md,
-        borderRadius: radius.md,
-        marginBottom: spacing.md,
+        padding: spacing.lg, // 16px
+        borderRadius: radius.sm,
+        marginBottom: spacing.md, // 12px
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
     enableButton: {
-        paddingHorizontal: spacing.md,
+        paddingHorizontal: spacing.lg,
         paddingVertical: spacing.sm,
     },
     sectionTitle: {
-        marginTop: spacing.lg,
+        marginTop: spacing.xl, // 24px
         marginBottom: spacing.sm,
         marginLeft: spacing.xs,
     },
     cardContent: {
-        paddingHorizontal: spacing.md,
+        paddingHorizontal: spacing.lg, // 16px
     },
     quietCard: {
         opacity: 0.9,
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.lg, // 16px
         minHeight: 48,
     },
     rowDisabled: {
@@ -583,11 +583,11 @@ const styles = StyleSheet.create({
         paddingTop: spacing.xs,
     },
     footer: {
-        height: spacing.xxl,
+        height: spacing.xxxl, // 48px
     },
     // Diagnostics styles
     diagnosticsLoading: {
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.lg,
     },
     diagnosticsContent: {
         paddingTop: spacing.sm,
@@ -619,12 +619,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: spacing.md,
+        padding: spacing.lg, // 16px
     },
     modalCard: {
         width: '100%',
         maxWidth: 320,
-        padding: spacing.lg,
+        padding: spacing.xl, // 24px
     },
     modalTitle: {
         textAlign: 'center',
@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
     },
     modalText: {
         textAlign: 'center',
-        marginBottom: spacing.lg,
+        marginBottom: spacing.xl, // 24px
     },
     modalButtons: {
         gap: spacing.sm,

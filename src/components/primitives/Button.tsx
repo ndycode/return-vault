@@ -1,6 +1,11 @@
 /**
  * Button Primitive
  * Primary and secondary button variants
+ * 
+ * HIERARCHY:
+ * - primary: Main CTA, one per screen ideally
+ * - secondary: Alternative actions
+ * - ghost: Tertiary, cancel, dismiss
  */
 
 import React from 'react';
@@ -11,7 +16,7 @@ import {
     ActivityIndicator,
     View,
 } from 'react-native';
-import { colors, spacing, radius, typography } from '../../design';
+import { colors, spacing, radius, typography, shadows } from '../../design';
 import { Text } from './Text';
 
 export interface ButtonProps extends Omit<PressableProps, 'style'> {
@@ -73,7 +78,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: radius.md,
+        borderRadius: radius.sm, // 6px - more refined
     },
     fullWidth: {
         width: '100%',
@@ -82,14 +87,13 @@ const styles = StyleSheet.create({
     // Variants
     primary: {
         backgroundColor: colors.primary600,
+        ...shadows.sm, // Subtle grounding shadow
     },
     primaryPressed: {
         backgroundColor: colors.primary700,
     },
     secondary: {
         backgroundColor: colors.primary50,
-        borderWidth: 1,
-        borderColor: colors.primary200,
     },
     secondaryPressed: {
         backgroundColor: colors.primary100,
@@ -101,20 +105,20 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray100,
     },
 
-    // Sizes (8pt grid aligned)
+    // Sizes (8pt grid, 44pt minimum touch target)
     size_sm: {
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        minHeight: 40,
+        paddingHorizontal: spacing.lg, // 16px
+        paddingVertical: spacing.sm, // 8px
+        minHeight: 44,
     },
     size_md: {
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm + 4,
+        paddingHorizontal: spacing.xl, // 24px
+        paddingVertical: spacing.md, // 12px
         minHeight: 48,
     },
     size_lg: {
-        paddingHorizontal: spacing.xl,
-        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.xxl, // 32px
+        paddingVertical: spacing.lg, // 16px
         minHeight: 56,
     },
 

@@ -1,6 +1,11 @@
 /**
  * Card Primitive
- * Elevated surface container
+ * Elevated surface container - primary content grouping
+ * 
+ * VISUAL HIERARCHY:
+ * - No visible border (shadow provides separation)
+ * - Subtle shadow for depth
+ * - White background against gray100 surface
  */
 
 import React from 'react';
@@ -23,13 +28,20 @@ export function Card({
     children,
     ...props
 }: CardProps) {
-    const paddingValue = padding === 'none' ? 0 : spacing[padding];
+    const getPadding = () => {
+        switch (padding) {
+            case 'none': return 0;
+            case 'sm': return spacing.sm;
+            case 'md': return spacing.lg; // 16px - standard card padding
+            case 'lg': return spacing.xl; // 24px - generous padding
+        }
+    };
 
     const content = (
         <View
             style={[
                 styles.container,
-                { padding: paddingValue },
+                { padding: getPadding() },
                 style,
             ]}
             {...props}
@@ -55,12 +67,10 @@ export function Card({
 const styles = StyleSheet.create({
     container: {
         backgroundColor: colors.surfaceElevated,
-        borderRadius: radius.lg,
-        borderWidth: 1,
-        borderColor: colors.border,
+        borderRadius: radius.md, // 10px - refined, not too round
         ...shadows.sm,
     },
     pressed: {
-        opacity: 0.9,
+        opacity: 0.95,
     },
 });

@@ -48,8 +48,8 @@ export function Chip({
 
 const styles = StyleSheet.create({
     chip: {
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.lg, // 16px
+        paddingVertical: spacing.sm, // 8px
         borderRadius: radius.full,
         backgroundColor: colors.surface,
         borderWidth: 1,
