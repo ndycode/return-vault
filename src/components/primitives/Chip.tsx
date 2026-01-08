@@ -37,7 +37,7 @@ export function Chip({
             ]}
         >
             <Text
-                variant="bodySmall"
+                variant="label"
                 color={selected ? 'textInverse' : 'textPrimary'}
             >
                 {label}

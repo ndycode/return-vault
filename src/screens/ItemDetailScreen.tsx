@@ -90,7 +90,7 @@ function UrgentBanner({ urgency }: { urgency: ReturnType<typeof getUrgencyClassi
 
     return (
         <View style={styles.urgentBanner}>
-            <Text variant="body" color="textInverse" style={styles.urgentBannerText}>
+            <Text variant="label" color="textInverse" style={styles.urgentBannerText}>
                 {getMessage()}
             </Text>
         </View>
@@ -373,7 +373,6 @@ const styles = StyleSheet.create({
     },
     urgentBannerText: {
         textAlign: 'center',
-        fontWeight: '600',
     },
     tagsContainer: {
         flexDirection: 'row',

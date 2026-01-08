@@ -2,5 +2,5 @@
  * Database Barrel Export
  */
 
-export { getDatabase, closeDatabase } from './database';
+export { getDatabase, closeDatabase, withTransaction } from './database';
 export * from './repositories';

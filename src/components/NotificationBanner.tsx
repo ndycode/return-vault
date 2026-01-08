@@ -24,7 +24,7 @@ export function NotificationBanner({ onDismiss }: NotificationBannerProps) {
     return (
         <View style={styles.container}>
             <View style={styles.content}>
-                <Text variant="bodySmall" color="textInverse">
+                <Text variant="secondary" color="textInverse">
                     Enable notifications to receive return and warranty reminders.
                 </Text>
                 <Pressable onPress={handleOpenSettings} style={styles.button}>

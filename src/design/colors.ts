@@ -11,21 +11,21 @@
 
 export const colors = {
     // ─────────────────────────────────────
-    // NEUTRAL PALETTE (calm, enterprise)
+    // NEUTRAL PALETTE (Slate - Enterprise/Fintech)
     // ─────────────────────────────────────
-    gray50: '#F9FAFB',
-    gray100: '#F3F4F6',
-    gray200: '#E5E7EB',
-    gray300: '#D1D5DB',
-    gray400: '#9CA3AF',
-    gray500: '#6B7280',
-    gray600: '#4B5563',
-    gray700: '#374151',
-    gray800: '#1F2937',
-    gray900: '#111827',
+    gray50: '#F8FAFC',
+    gray100: '#F1F5F9',
+    gray200: '#E2E8F0',
+    gray300: '#CBD5E1',
+    gray400: '#94A3B8',
+    gray500: '#64748B',
+    gray600: '#475569',
+    gray700: '#334155',
+    gray800: '#1E293B',
+    gray900: '#0F172A',
 
     // ─────────────────────────────────────
-    // PRIMARY (muted blue - professional)
+    // PRIMARY (Deep Blue - Professional)
     // Use sparingly: buttons, links, active states
     // ─────────────────────────────────────
     primary50: '#EFF6FF',
@@ -33,11 +33,11 @@ export const colors = {
     primary200: '#BFDBFE',
     primary300: '#93C5FD',
     primary400: '#60A5FA',
-    primary500: '#3B82F6',
-    primary600: '#2563EB',
-    primary700: '#1D4ED8',
-    primary800: '#1E40AF',
-    primary900: '#1E3A8A',
+    primary500: '#2563EB', // Deeper (was 600)
+    primary600: '#1D4ED8', // Deeper (was 700)
+    primary700: '#1E40AF', // Deeper (was 800)
+    primary800: '#1E3A8A', // Deeper (was 900)
+    primary900: '#172554', // New deepest
 
     // ─────────────────────────────────────
     // STATUS COLORS (semantic only)
@@ -65,24 +65,24 @@ export const colors = {
     // SEMANTIC SURFACES
     // ─────────────────────────────────────
     background: '#FFFFFF',
-    surface: '#F9FAFB',
+    surface: '#F8FAFC', // gray50
     surfaceElevated: '#FFFFFF',
     
     // ─────────────────────────────────────
     // SEMANTIC BORDERS
     // ─────────────────────────────────────
-    border: '#E5E7EB',
-    borderLight: '#F3F4F6',
-    borderFocus: '#3B82F6',
+    border: '#E2E8F0', // gray200
+    borderLight: '#F1F5F9', // gray100
+    borderFocus: '#2563EB', // primary500
 
     // ─────────────────────────────────────
     // SEMANTIC TEXT
     // ─────────────────────────────────────
-    textPrimary: '#111827',
-    textSecondary: '#6B7280',
-    textTertiary: '#9CA3AF',
+    textPrimary: '#0F172A', // gray900
+    textSecondary: '#64748B', // gray500
+    textTertiary: '#94A3B8', // gray400
     textInverse: '#FFFFFF',
-    textLink: '#2563EB',
+    textLink: '#2563EB', // primary500
 } as const;
 
 export type ColorToken = keyof typeof colors;

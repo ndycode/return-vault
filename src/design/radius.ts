@@ -13,10 +13,10 @@ export const radius = {
     none: 0,
     /** 6px - chips, badges */
     sm: 6,
-    /** 8px - buttons, inputs */
-    md: 8,
-    /** 12px - cards, modals */
-    lg: 12,
+    /** 10px - buttons, inputs */
+    md: 10,
+    /** 16px - cards, modals */
+    lg: 16,
     /** 9999px - pill/circle */
     full: 9999,
 } as const;

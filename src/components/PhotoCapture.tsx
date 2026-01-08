@@ -52,7 +52,7 @@ export function PhotoCapture({ uri, onCapture, onPick, onRemove }: PhotoCaptureP
             >
                 <Image source={{ uri }} style={styles.image} resizeMode="cover" />
                 <View style={styles.overlay}>
-                    <Text variant="caption" color="textInverse">
+                    <Text variant="meta" color="textInverse">
                         Tap to change
                     </Text>
                 </View>
@@ -68,7 +68,7 @@ export function PhotoCapture({ uri, onCapture, onPick, onRemove }: PhotoCaptureP
             <Text variant="body" color="textSecondary" style={styles.text}>
                 Add receipt photo
             </Text>
-            <Text variant="caption" color="textTertiary">
+            <Text variant="meta" color="textTertiary">
                 Tap to take photo or choose from library
             </Text>
         </Pressable>

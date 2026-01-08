@@ -16,3 +16,4 @@ export { StatusBadge, type StatusBadgeProps, type BadgeVariant } from './StatusB
 export { MetaText, type MetaTextProps } from './MetaText';
 export { CollapsibleSection, type CollapsibleSectionProps } from './CollapsibleSection';
 export { SystemStatus, type SystemStatusProps } from './SystemStatus';
+export { Modal, type ModalProps, type ModalAction } from './Modal';

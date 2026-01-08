@@ -36,7 +36,7 @@ export function SearchBar({
             />
             {value.length > 0 && onClear && (
                 <Pressable onPress={onClear} style={styles.clearButton}>
-                    <Text variant="caption" color="textSecondary">Clear</Text>
+                    <Text variant="label" color="textSecondary">Clear</Text>
                 </Pressable>
             )}
         </View>

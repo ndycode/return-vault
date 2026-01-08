@@ -43,7 +43,7 @@ export function DatePickerField({ label, value, onChange }: DatePickerFieldProps
     return (
         <View style={styles.container}>
             {label && (
-                <Text variant="bodySmall" color="textSecondary" style={styles.label}>
+                <Text variant="label" color="textSecondary" style={styles.label}>
                     {label}
                 </Text>
             )}

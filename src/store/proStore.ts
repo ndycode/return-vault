@@ -2,6 +2,9 @@
  * Pro Store
  * Manages Pro/paid status with persistence
  * v1.1 Monetization
+ * 
+ * Note: This store is the source of truth for IAP purchases.
+ * It syncs isPro state to settingsStore for consistency.
  */
 
 import { create } from 'zustand';
@@ -34,14 +37,26 @@ export const useProStore = create<ProState>()(
         (set) => ({
             ...initialState,
 
-            setPro: (isPro: boolean, productId?: string) =>
+            setPro: (isPro: boolean, productId?: string) => {
                 set({
                     isPro,
                     purchasedProductId: productId ?? null,
                     purchaseDate: isPro ? new Date().toISOString() : null,
-                }),
+                });
+                // Sync to settingsStore to prevent state drift
+                // Dynamic import to avoid circular dependency
+                import('./settingsStore').then(({ useSettingsStore }) => {
+                    useSettingsStore.getState().setPro(isPro);
+                });
+            },
 
-            clearPro: () => set(initialState),
+            clearPro: () => {
+                set(initialState);
+                // Sync to settingsStore
+                import('./settingsStore').then(({ useSettingsStore }) => {
+                    useSettingsStore.getState().setPro(false);
+                });
+            },
         }),
         {
             name: 'warranty-locker-pro',

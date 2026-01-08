@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
         height: 80,
     },
     tabLabel: {
-        ...typography.caption,
+        ...typography.meta,
         marginTop: spacing.xs,
     },
     iconContainer: {

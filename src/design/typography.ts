@@ -1,16 +1,22 @@
 /**
  * Design System - Typography Tokens
- * Enterprise-grade font scale with clear hierarchy and functional roles.
+ * Enterprise/fintech-grade font scale with clear hierarchy.
  * 
- * USAGE RULES:
- * - screenTitle: Main screen headers (H1)
- * - sectionHeader: Section dividers, card titles (H2/H3)
- * - label: Form labels, table headers, dense UI
- * - body: Primary content
- * - secondary: Supporting text, descriptions
- * - meta: Timestamp, small metadata, footnotes
- * - display: Large pricing or stats
- * - symbol*: Iconography using text characters
+ * HIERARCHY (top to bottom):
+ * - display: Hero numbers, pricing (36px)
+ * - screenTitle: Page headers (28px)
+ * - title: Card titles, modal headers (20px) 
+ * - sectionHeader: Section dividers (13px uppercase)
+ * - body: Primary content (16px)
+ * - label: Form labels, dense UI (14px medium)
+ * - secondary: Supporting text (14px regular)
+ * - meta: Timestamps, footnotes (12px)
+ * 
+ * WEIGHT TIERS:
+ * - 700: Titles (screenTitle)
+ * - 600: Emphasis (title, sectionHeader, button)
+ * - 500: Labels (label)
+ * - 400: Body copy (body, secondary, meta)
  */
 
 import { TextStyle, Platform } from 'react-native';
@@ -23,8 +29,8 @@ const fontFamily = Platform.select({
 
 export const typography = {
     /**
-     * DISPLAY - Large pricing, stats, hero numbers
-     * 36/44 ExtraBold
+     * DISPLAY - Hero numbers, pricing, stats
+     * 36/44 ExtraBold - commanding, rare usage
      */
     display: {
         fontFamily,
@@ -36,59 +42,71 @@ export const typography = {
 
     /**
      * SCREEN TITLE - Page headers
-     * 28/34 Bold
+     * 28/36 Bold - authoritative but not aggressive
      */
     screenTitle: {
         fontFamily,
         fontSize: 28,
         fontWeight: '700',
-        lineHeight: 34,
-        letterSpacing: -0.4,
+        lineHeight: 36,
+        letterSpacing: -0.5,
     } as TextStyle,
 
     /**
-     * SECTION HEADER - Card titles, modal headers, section dividers
-     * 20/28 SemiBold
+     * TITLE - Card titles, modal headers, item names
+     * 20/28 SemiBold - mid-hierarchy anchor
      */
-    sectionHeader: {
+    title: {
         fontFamily,
         fontSize: 20,
         fontWeight: '600',
         lineHeight: 28,
-        letterSpacing: -0.2,
+        letterSpacing: -0.3,
     } as TextStyle,
 
     /**
-     * LABEL - Input labels, table headers, compact items
-     * 15/20 SemiBold
+     * SECTION HEADER - Section dividers, grouped content labels
+     * 13/18 SemiBold uppercase - classic finance/enterprise pattern
+     */
+    sectionHeader: {
+        fontFamily,
+        fontSize: 13,
+        fontWeight: '600',
+        lineHeight: 18,
+        letterSpacing: 0.8,
+    } as TextStyle,
+
+    /**
+     * BODY - Primary reading content
+     * 16/24 Regular - iOS standard, refined
+     */
+    body: {
+        fontFamily,
+        fontSize: 16,
+        fontWeight: '400',
+        lineHeight: 24,
+        letterSpacing: -0.1,
+    } as TextStyle,
+
+    /**
+     * LABEL - Form labels, table headers, compact items
+     * 14/20 Medium - slightly emphasized
      */
     label: {
         fontFamily,
-        fontSize: 15,
-        fontWeight: '600',
+        fontSize: 14,
+        fontWeight: '500',
         lineHeight: 20,
         letterSpacing: 0,
     } as TextStyle,
 
     /**
-     * BODY - Primary reading content
-     * 17/24 Regular
-     */
-    body: {
-        fontFamily,
-        fontSize: 17,
-        fontWeight: '400',
-        lineHeight: 24,
-        letterSpacing: 0,
-    } as TextStyle,
-
-    /**
-     * SECONDARY - Supporting text, list items
-     * 15/20 Regular
+     * SECONDARY - Supporting text, descriptions
+     * 14/20 Regular - same size as label but less weight
      */
     secondary: {
         fontFamily,
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '400',
         lineHeight: 20,
         letterSpacing: 0,
@@ -96,23 +114,23 @@ export const typography = {
 
     /**
      * META - Timestamps, badges, footnotes
-     * 13/16 Regular
+     * 12/16 Regular - clearly subordinate
      */
     meta: {
         fontFamily,
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '400',
         lineHeight: 16,
-        letterSpacing: 0,
+        letterSpacing: 0.1,
     } as TextStyle,
 
     /**
      * BUTTON - Primary actions
-     * 17/24 SemiBold
+     * 16/24 SemiBold - matches body size with emphasis
      */
     button: {
         fontFamily,
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '600',
         lineHeight: 24,
         letterSpacing: 0,
@@ -120,11 +138,11 @@ export const typography = {
 
     /**
      * BUTTON SMALL - Compact actions
-     * 15/20 SemiBold
+     * 14/20 SemiBold
      */
     buttonSmall: {
         fontFamily,
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '600',
         lineHeight: 20,
         letterSpacing: 0,
@@ -144,7 +162,7 @@ export const typography = {
     symbolMd: {
         fontFamily,
         fontSize: 16,
-        fontWeight: '700', // Bold for checkmarks
+        fontWeight: '700',
         lineHeight: 20,
     } as TextStyle,
 

@@ -17,10 +17,15 @@ function getAttachmentsDir(): Directory {
  */
 async function ensureAttachmentsDir(): Promise<Directory> {
     const attachmentsDir = getAttachmentsDir();
-    if (!attachmentsDir.exists) {
-        attachmentsDir.create();
+    try {
+        if (!attachmentsDir.exists) {
+            attachmentsDir.create();
+        }
+        return attachmentsDir;
+    } catch (error) {
+        console.error('[AttachmentService] Failed to create attachments directory:', error);
+        throw new Error('Failed to create attachments directory');
     }
-    return attachmentsDir;
 }
 
 /**
@@ -94,18 +99,33 @@ export async function saveImageToDocuments(tempUri: string): Promise<string> {
     const sourceFile = new File(tempUri);
     const destFile = new File(attachmentsDir, filename);
 
-    sourceFile.copy(destFile);
-
-    return destFile.uri;
+    try {
+        sourceFile.copy(destFile);
+        
+        // Verify the copy succeeded
+        if (!destFile.exists) {
+            throw new Error('File copy verification failed');
+        }
+        
+        return destFile.uri;
+    } catch (error) {
+        console.error('[AttachmentService] Failed to save image:', error);
+        throw new Error('Failed to save image to documents');
+    }
 }
 
 /**
  * Delete image from documents
  */
 export async function deleteImage(uri: string): Promise<void> {
-    const file = new File(uri);
-    if (file.exists) {
-        file.delete();
+    try {
+        const file = new File(uri);
+        if (file.exists) {
+            file.delete();
+        }
+    } catch (error) {
+        console.error('[AttachmentService] Failed to delete image:', error);
+        // Don't throw - deletion failure is not critical
     }
 }
 
@@ -113,9 +133,14 @@ export async function deleteImage(uri: string): Promise<void> {
  * Get all attachment images in documents folder
  */
 export async function getStoredImages(): Promise<string[]> {
-    const attachmentsDir = await ensureAttachmentsDir();
-    const contents = attachmentsDir.list();
-    return contents
-        .filter((item): item is File => item instanceof File)
-        .map((file) => file.uri);
+    try {
+        const attachmentsDir = await ensureAttachmentsDir();
+        const contents = attachmentsDir.list();
+        return contents
+            .filter((item): item is File => item instanceof File)
+            .map((file) => file.uri);
+    } catch (error) {
+        console.error('[AttachmentService] Failed to list stored images:', error);
+        return [];
+    }
 }

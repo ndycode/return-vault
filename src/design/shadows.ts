@@ -34,10 +34,10 @@ export const shadows = {
     none: createShadow(0, 0, 0, 0),
 
     /** Subtle card shadow - barely visible */
-    sm: createShadow(1, 2, 0.04, 1),
+    sm: createShadow(2, 4, 0.04, 1),
 
     /** Standard elevation */
-    md: createShadow(2, 6, 0.06, 2),
+    md: createShadow(4, 12, 0.08, 2),
 
     /** Modal/overlay shadow */
     lg: createShadow(4, 12, 0.08, 4),
