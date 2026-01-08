@@ -52,3 +52,22 @@ export async function closeDatabase(): Promise<void> {
         console.log('[DB] Database closed');
     }
 }
+
+/**
+ * Execute operations within a database transaction
+ * Automatically commits on success, rolls back on failure
+ */
+export async function withTransaction<T>(
+    fn: (db: SQLite.SQLiteDatabase) => Promise<T>
+): Promise<T> {
+    const db = await getDatabase();
+    try {
+        await db.execAsync('BEGIN TRANSACTION');
+        const result = await fn(db);
+        await db.execAsync('COMMIT');
+        return result;
+    } catch (error) {
+        await db.execAsync('ROLLBACK');
+        throw error;
+    }
+}

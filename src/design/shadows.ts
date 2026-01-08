@@ -1,6 +1,12 @@
 /**
  * Design System - Shadow Tokens
- * Subtle elevation for depth
+ * Subtle elevation for depth (enterprise-grade: minimal shadows)
+ * 
+ * USAGE RULES:
+ * - none: flat elements
+ * - sm: cards, list items (primary use)
+ * - md: elevated cards, dropdowns
+ * - lg: modals, overlays only
  */
 
 import { Platform, ViewStyle } from 'react-native';
@@ -27,17 +33,14 @@ export const shadows = {
     /** No shadow */
     none: createShadow(0, 0, 0, 0),
 
-    /** Subtle card shadow */
-    sm: createShadow(1, 2, 0.05, 1),
+    /** Subtle card shadow - barely visible */
+    sm: createShadow(1, 2, 0.04, 1),
 
-    /** Standard card shadow */
-    md: createShadow(2, 4, 0.08, 3),
-
-    /** Elevated element shadow */
-    lg: createShadow(4, 8, 0.1, 6),
+    /** Standard elevation */
+    md: createShadow(2, 6, 0.06, 2),
 
     /** Modal/overlay shadow */
-    xl: createShadow(8, 16, 0.12, 12),
+    lg: createShadow(4, 12, 0.08, 4),
 } as const;
 
 export type ShadowToken = keyof typeof shadows;

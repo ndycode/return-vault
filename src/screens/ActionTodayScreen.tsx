@@ -1,31 +1,45 @@
 /**
  * ActionTodayScreen
- * Items with deadlines due soon or overdue
+ * Displays ONLY urgent items requiring immediate attention
+ *
+ * HIERARCHY SPEC:
+ * This screen shows ONLY urgent tier items:
+ * - Overdue returns
+ * - Returns due within 3 days
+ * - Warranty expiring within 7 days
+ *
+ * No informational or historical content allowed.
+ * If nothing urgent, show calm "All clear" state.
  */
 
-import React, { useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, SectionList, RefreshControl } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenContainer, Text, Card } from '../components/primitives';
 import { ItemCard } from '../components/ItemCard';
 import { EmptyState } from '../components/EmptyState';
-import { useActionItems } from '../hooks/useActionItems';
+import { usePurchases } from '../hooks/usePurchases';
 import { Purchase } from '../types';
 import { HomeStackParamList } from '../navigation/HomeStack';
 import { colors, spacing } from '../design';
+import {
+    filterUrgent,
+    getUrgencyClassification,
+    sortByUrgency,
+} from '../utils/urgency';
 
 type NavigationProp = NativeStackNavigationProp<HomeStackParamList, 'Home'>;
 
 interface Section {
     title: string;
-    type: 'overdue' | 'return' | 'warranty';
+    type: 'overdue' | 'dueSoon';
     data: Purchase[];
 }
 
 export function ActionTodayScreen() {
     const navigation = useNavigation<NavigationProp>();
-    const { overdue, returnDueSoon, warrantyExpiringSoon, isLoading, refresh, totalCount } = useActionItems();
+    const { purchases, isLoading, refresh } = usePurchases({ status: 'active' });
 
     // Refresh on screen focus
     useFocusEffect(
@@ -34,54 +48,71 @@ export function ActionTodayScreen() {
         }, [refresh])
     );
 
+    // Filter to only urgent items and categorize
+    const { overdueItems, dueSoonItems, totalCount } = useMemo(() => {
+        const urgentItems = filterUrgent(purchases);
+
+        const overdue: Purchase[] = [];
+        const dueSoon: Purchase[] = [];
+
+        for (const item of urgentItems) {
+            const classification = getUrgencyClassification(item);
+            if (classification.isOverdue) {
+                overdue.push(item);
+            } else {
+                dueSoon.push(item);
+            }
+        }
+
+        return {
+            overdueItems: sortByUrgency(overdue),
+            dueSoonItems: sortByUrgency(dueSoon),
+            totalCount: overdue.length + dueSoon.length,
+        };
+    }, [purchases]);
+
     const handleItemPress = (purchase: Purchase) => {
         navigation.navigate('ItemDetail', { itemId: purchase.id });
     };
 
-    // Build sections
-    const sections: Section[] = [];
+    // Build sections - overdue first, then due soon
+    const sections: Section[] = useMemo(() => {
+        const result: Section[] = [];
 
-    if (overdue.length > 0) {
-        sections.push({
-            title: 'Overdue',
-            type: 'overdue',
-            data: overdue,
-        });
-    }
+        if (overdueItems.length > 0) {
+            result.push({
+                title: 'Overdue',
+                type: 'overdue',
+                data: overdueItems,
+            });
+        }
 
-    if (returnDueSoon.length > 0) {
-        sections.push({
-            title: 'Return Due Soon',
-            type: 'return',
-            data: returnDueSoon,
-        });
-    }
+        if (dueSoonItems.length > 0) {
+            result.push({
+                title: 'Due Soon',
+                type: 'dueSoon',
+                data: dueSoonItems,
+            });
+        }
 
-    if (warrantyExpiringSoon.length > 0) {
-        sections.push({
-            title: 'Warranty Expiring',
-            type: 'warranty',
-            data: warrantyExpiringSoon,
-        });
-    }
+        return result;
+    }, [overdueItems, dueSoonItems]);
 
     const renderSectionHeader = ({ section }: { section: Section }) => {
         const getHeaderColor = () => {
             switch (section.type) {
                 case 'overdue':
                     return colors.error500;
-                case 'return':
+                case 'dueSoon':
                     return colors.warning500;
-                case 'warranty':
-                    return colors.primary500;
             }
         };
 
         return (
             <View style={styles.sectionHeader}>
                 <View style={[styles.sectionIndicator, { backgroundColor: getHeaderColor() }]} />
-                <Text variant="h3">{section.title}</Text>
-                <Text variant="bodySmall" color="textSecondary" style={styles.sectionCount}>
+                <Text variant="sectionHeader">{section.title}</Text>
+                <Text variant="meta" color="textSecondary" style={styles.sectionCount}>
                     {section.data.length}
                 </Text>
             </View>
@@ -90,26 +121,43 @@ export function ActionTodayScreen() {
 
     const renderItem = ({ item }: { item: Purchase }) => (
         <View style={styles.itemContainer}>
-            <ItemCard purchase={item} onPress={() => handleItemPress(item)} />
+            <ItemCard
+                purchase={item}
+                onPress={() => handleItemPress(item)}
+                urgencyTier="urgent"
+            />
         </View>
+    );
+
+    const renderEmpty = () => (
+        <EmptyState
+            title="All clear"
+            message="No items require attention right now."
+        />
     );
 
     return (
         <ScreenContainer>
             <View style={styles.header}>
-                <Text variant="h1">Action Today</Text>
+                <Text variant="screenTitle">Action Today</Text>
                 {totalCount > 0 && (
                     <View style={styles.badge}>
-                        <Text variant="caption" color="textInverse">{totalCount}</Text>
+                        <Text variant="meta" color="textInverse">{totalCount}</Text>
                     </View>
                 )}
             </View>
 
             {totalCount === 0 ? (
-                <EmptyState
-                    title="All clear"
-                    message="No items require attention right now. You're on top of things."
-                />
+                <View style={styles.emptyContainer}>
+                    <Card style={styles.calmCard}>
+                        <Text variant="sectionHeader" color="textSecondary" style={styles.calmTitle}>
+                            All clear
+                        </Text>
+                        <Text variant="secondary" color="textTertiary" style={styles.calmMessage}>
+                            No items require attention right now. Check back later.
+                        </Text>
+                    </Card>
+                </View>
             ) : (
                 <SectionList
                     sections={sections}
@@ -133,7 +181,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingTop: spacing.lg,
-        paddingBottom: spacing.lg,
+        paddingBottom: spacing.md,
     },
     badge: {
         backgroundColor: colors.error500,
@@ -145,11 +193,11 @@ const styles = StyleSheet.create({
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.sm,
     },
     sectionIndicator: {
-        width: 4,
-        height: 20,
+        width: 3,
+        height: 16,
         borderRadius: 2,
         marginRight: spacing.sm,
     },
@@ -157,9 +205,24 @@ const styles = StyleSheet.create({
         marginLeft: spacing.sm,
     },
     listContent: {
-        paddingBottom: spacing.xxxl,
+        paddingBottom: spacing.xxl,
     },
     itemContainer: {
-        marginBottom: spacing.md,
+        marginBottom: spacing.sm,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingBottom: spacing.xxl,
+    },
+    calmCard: {
+        alignItems: 'center',
+        paddingVertical: spacing.lg,
+    },
+    calmTitle: {
+        marginBottom: spacing.xs,
+    },
+    calmMessage: {
+        textAlign: 'center',
     },
 });

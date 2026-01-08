@@ -34,7 +34,7 @@ export function Input({
     return (
         <View style={styles.container}>
             {label && (
-                <Text variant="bodySmall" color="textSecondary" style={styles.label}>
+                <Text variant="label" color="textSecondary" style={styles.label}>
                     {label}
                 </Text>
             )}
@@ -57,12 +57,12 @@ export function Input({
                 {...props}
             />
             {error && (
-                <Text variant="caption" color="error500" style={styles.helper}>
+                <Text variant="meta" color="error500" style={styles.helper}>
                     {error}
                 </Text>
             )}
             {!error && helper && (
-                <Text variant="caption" color="textTertiary" style={styles.helper}>
+                <Text variant="meta" color="textTertiary" style={styles.helper}>
                     {helper}
                 </Text>
             )}

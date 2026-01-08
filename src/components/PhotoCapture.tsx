@@ -1,6 +1,11 @@
 /**
  * PhotoCapture Component
  * Camera/gallery photo capture with preview
+ * 
+ * v1.06-B: Zero-Thinking Defaults
+ * - Removed "Are you sure?" confirmation for photo removal
+ * - User can simply re-add a photo if removed accidentally
+ * - Reduces friction in photo-first flow
  */
 
 import React from 'react';
@@ -28,16 +33,13 @@ export function PhotoCapture({ uri, onCapture, onPick, onRemove }: PhotoCaptureP
         );
     };
 
+    /**
+     * v1.06-B: Direct removal without confirmation
+     * Long-press removes photo immediately - user can tap to re-add
+     */
     const handleLongPress = () => {
         if (uri && onRemove) {
-            Alert.alert(
-                'Remove Photo',
-                'Are you sure you want to remove this photo?',
-                [
-                    { text: 'Remove', style: 'destructive', onPress: onRemove },
-                    { text: 'Cancel', style: 'cancel' },
-                ]
-            );
+            onRemove();
         }
     };
 

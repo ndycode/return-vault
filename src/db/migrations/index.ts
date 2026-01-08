@@ -26,8 +26,13 @@ async function getDatabaseVersion(db: SQLiteDatabase): Promise<number> {
 
 /**
  * Set database version
+ * Note: PRAGMA doesn't support parameterized queries, so we validate the input
  */
 async function setDatabaseVersion(db: SQLiteDatabase, version: number): Promise<void> {
+    // Validate version is a safe integer to prevent SQL injection
+    if (!Number.isInteger(version) || version < 0 || version > 999999) {
+        throw new Error(`Invalid migration version: ${version}`);
+    }
     await db.execAsync(`PRAGMA user_version = ${version}`);
 }
 

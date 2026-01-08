@@ -101,21 +101,21 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray100,
     },
 
-    // Sizes
+    // Sizes (8pt grid aligned)
     size_sm: {
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
-        minHeight: 36,
+        minHeight: 40,
     },
     size_md: {
         paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-        minHeight: 44,
+        paddingVertical: spacing.sm + 4,
+        minHeight: 48,
     },
     size_lg: {
         paddingHorizontal: spacing.xl,
-        paddingVertical: spacing.lg,
-        minHeight: 52,
+        paddingVertical: spacing.md,
+        minHeight: 56,
     },
 
     disabled: {

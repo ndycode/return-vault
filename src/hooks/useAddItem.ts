@@ -1,12 +1,23 @@
 /**
  * useAddItem Hook
  * Manages the add purchase flow state and logic
+ * 
+ * v1.06-B: Zero-Thinking Defaults
+ * - Smart store-based defaults
+ * - Collapsed optional fields
+ * - Reduced cognitive load
+ * 
+ * v1.06-D: System Confidence Layer
+ * - Enterprise-grade error messaging
+ * - Silent save confirmation (navigation = success)
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { createPurchase, createAttachment, updatePurchase, getPurchaseCounts } from '../db';
+import { TabParamList, DEFAULT_LANDING_SCREEN } from '../navigation';
 import { capturePhoto, pickPhoto, saveImageToDocuments } from '../services/attachmentService';
 import {
     scheduleNotificationsForPurchase,
@@ -14,6 +25,8 @@ import {
 } from '../services/notificationService';
 import { useSettingsStore, canUseProFeature } from '../store/settingsStore';
 import { getCurrentDateISO } from '../utils/dateUtils';
+import { getStoreDefaults, UNIVERSAL_DEFAULTS, FieldVisibility, getInitialFieldVisibility } from '../utils/defaults';
+import { VALIDATION, ERROR, ALERT_TITLES } from '../utils/copy';
 import { FREE_ITEM_LIMIT } from '../types/pro';
 
 export interface AddItemState {
@@ -32,14 +45,18 @@ export interface AddItemState {
     showLimitModal: boolean;
     /** Remaining free purchases for display */
     remainingFree: number;
+    /** Whether store defaults were applied (for hint display) */
+    storeDefaultsApplied: boolean;
+    /** Field visibility for collapsed sections */
+    fieldVisibility: FieldVisibility;
 }
 
 const initialState: AddItemState = {
     name: '',
     store: '',
     purchaseDate: getCurrentDateISO(),
-    returnWindowDays: 30,
-    warrantyMonths: 12,
+    returnWindowDays: UNIVERSAL_DEFAULTS.returnWindowDays,
+    warrantyMonths: UNIVERSAL_DEFAULTS.warrantyMonths,
     price: '',
     serialNumber: '',
     notes: '',
@@ -48,11 +65,13 @@ const initialState: AddItemState = {
     isLoading: false,
     showLimitModal: false,
     remainingFree: FREE_ITEM_LIMIT,
+    storeDefaultsApplied: false,
+    fieldVisibility: getInitialFieldVisibility(),
 };
 
 export function useAddItem() {
     const [state, setState] = useState<AddItemState>(initialState);
-    const navigation = useNavigation();
+    const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
     const isPro = useSettingsStore((s) => s.isPro);
 
     const notificationSettings = useSettingsStore((s) => s.notificationSettings);
@@ -78,6 +97,48 @@ export function useAddItem() {
         value: AddItemState[K]
     ) => {
         setState((prev) => ({ ...prev, [field]: value }));
+    }, []);
+
+    /**
+     * Handle store field change with smart defaults
+     * v1.06-B: Auto-apply store-specific return/warranty policies
+     */
+    const handleStoreChange = useCallback((storeName: string) => {
+        setState((prev) => {
+            const storeDefaults = getStoreDefaults(storeName);
+            
+            if (storeDefaults) {
+                // Apply store-specific defaults
+                return {
+                    ...prev,
+                    store: storeName,
+                    returnWindowDays: storeDefaults.returnDays,
+                    warrantyMonths: storeDefaults.warrantyMonths,
+                    storeDefaultsApplied: true,
+                };
+            }
+            
+            // No matching store - just update the field
+            return {
+                ...prev,
+                store: storeName,
+                storeDefaultsApplied: false,
+            };
+        });
+    }, []);
+
+    /**
+     * Toggle visibility of optional fields section
+     * v1.06-B: Collapsed by default to reduce cognitive load
+     */
+    const toggleMoreDetails = useCallback(() => {
+        setState((prev) => ({
+            ...prev,
+            fieldVisibility: {
+                ...prev.fieldVisibility,
+                showMoreDetails: !prev.fieldVisibility.showMoreDetails,
+            },
+        }));
     }, []);
 
     const handleCapturePhoto = useCallback(async () => {
@@ -113,11 +174,11 @@ export function useAddItem() {
 
     const validate = useCallback((): boolean => {
         if (!state.name.trim()) {
-            Alert.alert('Required', 'Please enter an item name.');
+            Alert.alert(ALERT_TITLES.INFO, VALIDATION.REQUIRED_NAME);
             return false;
         }
         if (!state.photoUri) {
-            Alert.alert('Required', 'Please add a receipt photo.');
+            Alert.alert(ALERT_TITLES.INFO, VALIDATION.REQUIRED_PHOTO);
             return false;
         }
         return true;
@@ -149,7 +210,7 @@ export function useAddItem() {
             }
 
             // Parse price if provided
-            const price = state.price ? parseFloat(state.price) : undefined;
+            const parsedPrice = state.price ? parseFloat(state.price) : undefined;
 
             // Create purchase record
             const purchase = await createPurchase({
@@ -158,7 +219,7 @@ export function useAddItem() {
                 purchaseDate: state.purchaseDate,
                 returnWindowDays: state.returnWindowDays ?? undefined,
                 warrantyMonths: state.warrantyMonths ?? undefined,
-                price: isNaN(price as number) ? undefined : price,
+                price: parsedPrice !== undefined && !isNaN(parsedPrice) ? parsedPrice : undefined,
                 serialNumber: state.serialNumber.trim() || undefined,
                 notes: state.notes.trim() || undefined,
             });
@@ -196,12 +257,12 @@ export function useAddItem() {
                 });
             }
 
-            // Reset form and navigate back
+            // Reset form and navigate to Home tab (v1.06-E: TASK save → HUB)
             setState(initialState);
-            navigation.goBack();
+            navigation.navigate(DEFAULT_LANDING_SCREEN);
         } catch (error) {
             console.error('Failed to save purchase:', error);
-            Alert.alert('Error', 'Failed to save purchase. Please try again.');
+            Alert.alert(ALERT_TITLES.ERROR, ERROR.SAVE_FAILED);
         } finally {
             setState((prev) => ({ ...prev, isLoading: false }));
         }
@@ -218,6 +279,8 @@ export function useAddItem() {
     return {
         state,
         updateField,
+        handleStoreChange,
+        toggleMoreDetails,
         handleCapturePhoto,
         handlePickPhoto,
         handleAddAdditionalPhoto,

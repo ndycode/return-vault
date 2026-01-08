@@ -21,7 +21,7 @@ export function EmptyState({ title, message, actionLabel, onAction }: EmptyState
             <View style={styles.iconContainer}>
                 <View style={styles.icon} />
             </View>
-            <Text variant="h3" center style={styles.title}>
+            <Text variant="sectionHeader" center style={styles.title}>
                 {title}
             </Text>
             <Text variant="body" color="textSecondary" center style={styles.message}>
@@ -44,28 +44,28 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: spacing.xl,
-        paddingVertical: spacing.xxxl,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.xxl,
     },
     iconContainer: {
-        width: 80,
-        height: 80,
+        width: 64,
+        height: 64,
         borderRadius: radius.full,
         backgroundColor: colors.gray100,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
     },
     icon: {
-        width: 40,
-        height: 40,
-        backgroundColor: colors.gray300,
-        borderRadius: 8,
+        width: 32,
+        height: 32,
+        backgroundColor: colors.gray200,
+        borderRadius: radius.md,
     },
     title: {
         marginBottom: spacing.sm,
     },
     message: {
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
     },
 });

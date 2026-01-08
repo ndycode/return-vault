@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
         borderRadius: radius.md,
         borderWidth: 1,
         borderColor: colors.border,
-        paddingHorizontal: spacing.md,
+        paddingHorizontal: spacing.sm,
     },
     iconContainer: {
         marginRight: spacing.sm,
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
         flex: 1,
         ...typography.body,
         color: colors.textPrimary,
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.sm,
     },
     clearButton: {
         paddingLeft: spacing.sm,

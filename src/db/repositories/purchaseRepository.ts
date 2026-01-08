@@ -120,6 +120,17 @@ export async function getPurchases(options?: {
     const orderBy = options?.orderBy ?? 'createdAt';
     const orderDirection = options?.orderDirection ?? 'DESC';
 
+    // Allowlist validation to prevent SQL injection
+    const validOrderByColumns = ['returnDeadline', 'warrantyExpiry', 'purchaseDate', 'createdAt'] as const;
+    const validDirections = ['ASC', 'DESC'] as const;
+    
+    if (!validOrderByColumns.includes(orderBy as typeof validOrderByColumns[number])) {
+        throw new Error(`Invalid orderBy column: ${orderBy}`);
+    }
+    if (!validDirections.includes(orderDirection as typeof validDirections[number])) {
+        throw new Error(`Invalid orderDirection: ${orderDirection}`);
+    }
+
     // Handle null values in ordering - put nulls last
     if (orderBy === 'returnDeadline' || orderBy === 'warrantyExpiry') {
         query += ` ORDER BY ${orderBy} IS NULL, ${orderBy} ${orderDirection}`;
@@ -189,11 +200,13 @@ export async function getActionItems(): Promise<{
  */
 export async function searchPurchases(query: string): Promise<Purchase[]> {
     const db = await getDatabase();
-    const searchTerm = `%${query}%`;
+    // Escape SQL wildcards to prevent injection via special characters
+    const escapedQuery = query.replace(/[%_\\]/g, '\\$&');
+    const searchTerm = `%${escapedQuery}%`;
 
     return db.getAllAsync<Purchase>(
         `SELECT * FROM purchases 
-     WHERE (name LIKE ? OR store LIKE ?)
+     WHERE (name LIKE ? ESCAPE '\\' OR store LIKE ? ESCAPE '\\')
      ORDER BY createdAt DESC`,
         [searchTerm, searchTerm]
     );
@@ -290,6 +303,15 @@ export async function updatePurchase(
  */
 export async function archivePurchase(id: string): Promise<boolean> {
     const result = await updatePurchase(id, { status: 'archived' });
+    return result !== null;
+}
+
+/**
+ * Restore an archived purchase back to active
+ * v1.06-B: Undo support for archive action
+ */
+export async function restorePurchase(id: string): Promise<boolean> {
+    const result = await updatePurchase(id, { status: 'active' });
     return result !== null;
 }
 

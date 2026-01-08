@@ -2,12 +2,16 @@
  * Diagnostics Service
  * Provides system information for dev builds
  * Hidden in production builds
+ * 
+ * v1.06-D: System Confidence Layer
+ * - Exposes backup freshness for confidence indicators
  */
 
 import { getDatabase } from '../db/database';
 import { getLatestVersion } from '../db/migrations';
 import { getPurchaseCounts } from '../db/repositories/purchaseRepository';
 import { isDebugActive, getDebugSettings } from '../utils/debug';
+import { useSettingsStore } from '../store/settingsStore';
 
 export interface DiagnosticsData {
     app: {
@@ -75,8 +79,8 @@ export async function collectDiagnostics(): Promise<DiagnosticsData | null> {
         // Will need expo-notifications to get actual status
         const notificationPermission = 'unknown' as const;
 
-        // Last backup - would need to be stored in AsyncStorage
-        const lastBackupDate = null;
+        // Last backup - from settings store
+        const lastBackupDate = useSettingsStore.getState().lastBackupDate;
 
         return {
             app: {

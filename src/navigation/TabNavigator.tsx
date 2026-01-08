@@ -9,7 +9,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeStack } from './HomeStack';
 import { SettingsStack } from './SettingsStack';
 import { ActionTodayScreen, AddItemScreen } from '../screens';
-import { colors, spacing, typography } from '../design';
+import { colors, spacing, typography, radius } from '../design';
 
 export type TabParamList = {
     HomeTab: undefined;
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
         borderTopColor: colors.border,
         borderTopWidth: StyleSheet.hairlineWidth,
         paddingTop: spacing.xs,
-        height: 84,
+        height: 80,
     },
     tabLabel: {
         ...typography.caption,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     },
     addIconContainer: {
         backgroundColor: colors.primary600,
-        borderRadius: 8,
+        borderRadius: radius.md,
     },
     icon: {
         alignItems: 'center',

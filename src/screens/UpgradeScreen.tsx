@@ -1,10 +1,21 @@
+/**
+ * UpgradeScreen
+ * Pro upgrade and restore flow
+ * 
+ * v1.06-D: System Confidence Layer
+ * - Enterprise-grade messaging
+ * - No celebratory animations
+ * - Calm, factual confirmations
+ */
+
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer, Text, Card, Button } from '../components/primitives';
 import { colors, spacing, radius } from '../design';
 import { useSettingsStore } from '../store/settingsStore';
 import { purchasePro, restorePro, getProPrice } from '../utils/iap';
+import { SUCCESS, ERROR, ALERT_TITLES } from '../utils/copy';
 
 const PRO_FEATURES = [
     { title: 'Unlimited Items', description: 'Store more than 10 items' },
@@ -24,14 +35,14 @@ export function UpgradeScreen() {
         try {
             const result = await purchasePro();
             if (result.success) {
-                Alert.alert('Success', 'Welcome to Pro!', [
+                Alert.alert(ALERT_TITLES.PRO_UNLOCKED, SUCCESS.PRO_UNLOCKED, [
                     { text: 'OK', onPress: () => navigation.goBack() }
                 ]);
             } else if (result.error && result.error !== 'USER_CANCELED') {
-                Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
+                Alert.alert(ALERT_TITLES.ERROR, ERROR.PURCHASE_FAILED);
             }
         } catch (error) {
-            Alert.alert('Error', 'An unexpected error occurred.');
+            Alert.alert(ALERT_TITLES.ERROR, ERROR.GENERIC);
         } finally {
             setIsLoading(false);
         }
@@ -43,17 +54,17 @@ export function UpgradeScreen() {
             const result = await restorePro();
             if (result.success) {
                 if (result.hasPro) {
-                    Alert.alert('Restored', 'Your Pro purchase has been restored.', [
+                    Alert.alert(ALERT_TITLES.RESTORE, SUCCESS.PRO_RESTORED, [
                         { text: 'OK', onPress: () => navigation.goBack() }
                     ]);
                 } else {
-                    Alert.alert('No Purchase Found', 'We couldn\'t find a Pro purchase to restore.');
+                    Alert.alert(ALERT_TITLES.RESTORE, ERROR.NO_PURCHASE_FOUND);
                 }
             } else {
-                Alert.alert('Restore Failed', result.error || 'Could not restore purchases.');
+                Alert.alert(ALERT_TITLES.ERROR, ERROR.RESTORE_FAILED);
             }
         } catch (error) {
-            Alert.alert('Error', 'An unexpected error occurred during restore.');
+            Alert.alert(ALERT_TITLES.ERROR, ERROR.GENERIC);
         } finally {
             setIsRestoring(false);
         }
@@ -64,15 +75,15 @@ export function UpgradeScreen() {
             <ScreenContainer>
                 <View style={styles.successContainer}>
                     <View style={styles.successIcon}>
-                        <Text variant="h1" style={styles.checkMark}>✓</Text>
+                        <Text variant="symbolXL" color="success600" style={styles.checkMark}>✓</Text>
                     </View>
-                    <Text variant="h1" style={styles.successTitle}>You're a Pro!</Text>
+                    <Text variant="screenTitle" style={styles.successTitle}>Pro Active</Text>
                     <Text variant="body" color="textSecondary" style={styles.successText}>
-                        Thank you for supporting Warranty Locker. You have access to all features.
+                        All features unlocked. Your data is stored locally on this device.
                     </Text>
                     <View style={styles.successButton}>
                         <Button 
-                            title="Go Back" 
+                            title="Done" 
                             onPress={() => navigation.goBack()} 
                         />
                     </View>
@@ -88,19 +99,19 @@ export function UpgradeScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.header}>
-                    <Text variant="h1" style={styles.title}>Unlock Full Access</Text>
+                    <Text variant="screenTitle" style={styles.title}>Unlock Full Access</Text>
                     <Text variant="body" color="textSecondary" style={styles.subtitle}>
                         Get the most out of your warranty tracking
                     </Text>
                 </View>
 
                 <Card style={styles.priceCard}>
-                    <Text variant="caption" color="primary600" style={styles.bestValue}>
+                    <Text variant="label" color="primary600" style={styles.bestValue}>
                         LIFETIME ACCESS
                     </Text>
                     <View style={styles.priceContainer}>
-                        <Text variant="h1" style={styles.price}>{getProPrice()}</Text>
-                        <Text variant="bodySmall" color="textSecondary" style={styles.period}>
+                        <Text variant="display" style={styles.price}>{getProPrice()}</Text>
+                        <Text variant="secondary" color="textSecondary" style={styles.period}>
                             / one-time
                         </Text>
                     </View>
@@ -110,13 +121,13 @@ export function UpgradeScreen() {
                     {PRO_FEATURES.map((feature, index) => (
                         <View key={index} style={styles.featureItem}>
                             <View style={styles.iconContainer}>
-                                <Text style={styles.featureIcon}>✓</Text>
+                                <Text variant="symbolMd" style={styles.featureIcon}>✓</Text>
                             </View>
                             <View style={styles.featureTextContainer}>
-                                <Text variant="body" style={styles.featureTitle}>
+                                <Text variant="label" style={styles.featureTitle}>
                                     {feature.title}
                                 </Text>
-                                <Text variant="caption" color="textSecondary">
+                                <Text variant="meta" color="textSecondary">
                                     {feature.description}
                                 </Text>
                             </View>
@@ -181,7 +192,6 @@ const styles = StyleSheet.create({
     },
     bestValue: {
         letterSpacing: 1.5,
-        fontWeight: '700',
         marginBottom: spacing.sm,
     },
     priceContainer: {
@@ -189,9 +199,7 @@ const styles = StyleSheet.create({
         alignItems: 'baseline',
     },
     price: {
-        fontSize: 36,
         color: colors.primary600,
-        fontWeight: '800',
     },
     period: {
         marginLeft: spacing.xs,
@@ -216,14 +224,11 @@ const styles = StyleSheet.create({
     },
     featureIcon: {
         color: colors.primary600,
-        fontWeight: 'bold',
-        fontSize: 16,
     },
     featureTextContainer: {
         flex: 1,
     },
     featureTitle: {
-        fontWeight: '600',
         marginBottom: 2,
     },
     footer: {
@@ -252,8 +257,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
     },
     checkMark: {
-        color: colors.success600,
-        fontSize: 40,
+        // color handled by props or kept here if not in props
     },
     successTitle: {
         marginBottom: spacing.sm,

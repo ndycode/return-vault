@@ -1,6 +1,16 @@
 /**
  * Design System - Typography Tokens
- * System font stack with consistent sizing
+ * Enterprise-grade font scale with clear hierarchy and functional roles.
+ * 
+ * USAGE RULES:
+ * - screenTitle: Main screen headers (H1)
+ * - sectionHeader: Section dividers, card titles (H2/H3)
+ * - label: Form labels, table headers, dense UI
+ * - body: Primary content
+ * - secondary: Supporting text, descriptions
+ * - meta: Timestamp, small metadata, footnotes
+ * - display: Large pricing or stats
+ * - symbol*: Iconography using text characters
  */
 
 import { TextStyle, Platform } from 'react-native';
@@ -12,71 +22,140 @@ const fontFamily = Platform.select({
 });
 
 export const typography = {
-    /** Large title - 28/34 bold */
-    h1: {
+    /**
+     * DISPLAY - Large pricing, stats, hero numbers
+     * 36/44 ExtraBold
+     */
+    display: {
+        fontFamily,
+        fontSize: 36,
+        fontWeight: '800',
+        lineHeight: 44,
+        letterSpacing: -0.5,
+    } as TextStyle,
+
+    /**
+     * SCREEN TITLE - Page headers
+     * 28/34 Bold
+     */
+    screenTitle: {
         fontFamily,
         fontSize: 28,
         fontWeight: '700',
         lineHeight: 34,
-        letterSpacing: -0.5,
+        letterSpacing: -0.4,
     } as TextStyle,
 
-    /** Section title - 22/28 semibold */
-    h2: {
+    /**
+     * SECTION HEADER - Card titles, modal headers, section dividers
+     * 20/28 SemiBold
+     */
+    sectionHeader: {
         fontFamily,
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: '600',
         lineHeight: 28,
-        letterSpacing: -0.3,
+        letterSpacing: -0.2,
     } as TextStyle,
 
-    /** Card title - 18/24 semibold */
-    h3: {
+    /**
+     * LABEL - Input labels, table headers, compact items
+     * 15/20 SemiBold
+     */
+    label: {
         fontFamily,
-        fontSize: 18,
+        fontSize: 15,
         fontWeight: '600',
-        lineHeight: 24,
+        lineHeight: 20,
+        letterSpacing: 0,
     } as TextStyle,
 
-    /** Body text - 16/22 regular */
+    /**
+     * BODY - Primary reading content
+     * 17/24 Regular
+     */
     body: {
         fontFamily,
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: '400',
-        lineHeight: 22,
+        lineHeight: 24,
+        letterSpacing: 0,
     } as TextStyle,
 
-    /** Small body - 14/20 regular */
-    bodySmall: {
+    /**
+     * SECONDARY - Supporting text, list items
+     * 15/20 Regular
+     */
+    secondary: {
         fontFamily,
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '400',
         lineHeight: 20,
+        letterSpacing: 0,
     } as TextStyle,
 
-    /** Caption - 12/16 regular */
-    caption: {
+    /**
+     * META - Timestamps, badges, footnotes
+     * 13/16 Regular
+     */
+    meta: {
         fontFamily,
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '400',
         lineHeight: 16,
+        letterSpacing: 0,
     } as TextStyle,
 
-    /** Button text - 16/22 semibold */
+    /**
+     * BUTTON - Primary actions
+     * 17/24 SemiBold
+     */
     button: {
         fontFamily,
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: '600',
-        lineHeight: 22,
+        lineHeight: 24,
+        letterSpacing: 0,
     } as TextStyle,
 
-    /** Small button - 14/20 semibold */
+    /**
+     * BUTTON SMALL - Compact actions
+     * 15/20 SemiBold
+     */
     buttonSmall: {
         fontFamily,
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '600',
         lineHeight: 20,
+        letterSpacing: 0,
     } as TextStyle,
+
+    // SYMBOLS (Iconography via Text)
+    
+    /** 40px Symbol */
+    symbolXL: {
+        fontFamily,
+        fontSize: 40,
+        fontWeight: '400',
+        lineHeight: 48,
+    } as TextStyle,
+
+    /** 16px Symbol */
+    symbolMd: {
+        fontFamily,
+        fontSize: 16,
+        fontWeight: '700', // Bold for checkmarks
+        lineHeight: 20,
+    } as TextStyle,
+
+    /** 10px Symbol */
+    symbolXS: {
+        fontFamily,
+        fontSize: 10,
+        fontWeight: '400',
+        lineHeight: 12,
+    } as TextStyle,
+
 } as const;
 
 export type TypographyToken = keyof typeof typography;

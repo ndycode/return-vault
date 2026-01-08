@@ -1,6 +1,6 @@
 /**
  * ScreenContainer Primitive
- * Safe area wrapper with consistent padding
+ * Safe area wrapper with consistent 8pt grid padding
  */
 
 import React from 'react';
@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '../../design';
 
 export interface ScreenContainerProps extends ViewProps {
-    /** Apply horizontal padding */
+    /** Apply horizontal padding (default: 16px) */
     padded?: boolean;
     /** Background color override */
     backgroundColor?: string;
@@ -34,8 +34,8 @@ export function ScreenContainer({
                     backgroundColor,
                     paddingTop: insets.top,
                     paddingBottom: insets.bottom,
-                    paddingLeft: padded ? spacing.lg : 0,
-                    paddingRight: padded ? spacing.lg : 0,
+                    paddingLeft: padded ? spacing.md : 0,
+                    paddingRight: padded ? spacing.md : 0,
                 },
                 style,
             ]}

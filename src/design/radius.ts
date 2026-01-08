@@ -1,18 +1,22 @@
 /**
  * Design System - Border Radius Tokens
+ * 
+ * USAGE RULES:
+ * - sm: chips, badges, tags
+ * - md: buttons, inputs, small cards
+ * - lg: cards, modals
+ * - full: avatars, circular elements
  */
 
 export const radius = {
     /** 0px - sharp corners */
     none: 0,
-    /** 4px - subtle rounding */
-    sm: 4,
-    /** 8px - standard rounding */
+    /** 6px - chips, badges */
+    sm: 6,
+    /** 8px - buttons, inputs */
     md: 8,
-    /** 12px - card rounding */
+    /** 12px - cards, modals */
     lg: 12,
-    /** 16px - modal rounding */
-    xl: 16,
     /** 9999px - pill/circle */
     full: 9999,
 } as const;

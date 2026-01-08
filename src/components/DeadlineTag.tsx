@@ -46,7 +46,7 @@ export function DeadlineTag({ deadline, type }: DeadlineTagProps) {
 
     return (
         <View style={[styles.tag, { backgroundColor: getBackgroundColor() }]}>
-            <Text variant="caption" color={getTextColor()}>
+            <Text variant="meta" color={getTextColor()}>
                 {prefix}{status.text}
             </Text>
         </View>

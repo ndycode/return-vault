@@ -1,6 +1,9 @@
 /**
  * Settings Store
  * Persistent app settings using Zustand + AsyncStorage
+ * 
+ * v1.06-D: System Confidence Layer
+ * - Tracks last backup date for freshness indicator
  */
 
 import { create } from 'zustand';
@@ -19,11 +22,15 @@ interface SettingsState {
     // Pro state
     isPro: boolean;
     iapLastCheckedAt: string | null;
+    
+    // Backup state (v1.06-D: System Confidence)
+    lastBackupDate: string | null;
 
     // Actions
     updateNotificationSettings: (settings: Partial<NotificationSettings>) => void;
     setHasRequestedNotificationPermission: (value: boolean) => void;
     setPro: (isPro: boolean) => void;
+    setLastBackupDate: (date: string) => void;
     resetSettings: () => void;
 }
 
@@ -32,6 +39,7 @@ const initialState = {
     hasRequestedNotificationPermission: false,
     isPro: false,
     iapLastCheckedAt: null,
+    lastBackupDate: null,
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -55,6 +63,9 @@ export const useSettingsStore = create<SettingsState>()(
                     isPro, 
                     iapLastCheckedAt: new Date().toISOString() 
                 }),
+                
+            setLastBackupDate: (date) =>
+                set({ lastBackupDate: date }),
 
             resetSettings: () => set(initialState),
         }),

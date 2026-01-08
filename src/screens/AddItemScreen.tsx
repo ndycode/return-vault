@@ -1,18 +1,25 @@
 /**
  * AddItemScreen
  * Fast add flow for new purchases
+ * 
+ * v1.06-B: Zero-Thinking Defaults + Progressive Disclosure
+ * - Only 4 essential fields visible by default (photo, name, date, return window)
+ * - Store, Warranty, Price, Serial, Notes hidden under "Add more details"
+ * - Smart store-based defaults (typing "Costco" → 90 day return, 24 mo warranty)
+ * - No scrolling required for basic add
+ * - Advanced fields preserve input on collapse
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Modal, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScreenContainer, Text, Input, Button, Card } from '../components/primitives';
+import { ScreenContainer, Text, Input, Button, Card, CollapsibleSection } from '../components/primitives';
 import { PhotoCapture } from '../components/PhotoCapture';
 import { ChipGroup } from '../components/ChipGroup';
 import { DatePickerField } from '../components/DatePickerField';
 import { useAddItem } from '../hooks/useAddItem';
-import { colors, spacing, radius } from '../design';
+import { colors, spacing } from '../design';
 import { useSettingsStore } from '../store/settingsStore';
 import { FREE_ITEM_LIMIT } from '../types/pro';
 
@@ -42,17 +49,26 @@ export function AddItemScreen() {
     const {
         state,
         updateField,
+        handleStoreChange,
         handleCapturePhoto,
         handlePickPhoto,
         handleSave,
         dismissLimitModal,
     } = useAddItem();
     const isPro = useSettingsStore((s) => s.isPro);
+    
+    // Track if advanced fields section is expanded
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     const handleUpgrade = () => {
         dismissLimitModal();
         navigation.navigate('Upgrade');
     };
+
+    // Auto-expand if any advanced field has data (preserve on navigation)
+    const hasAdvancedData = Boolean(
+        state.store || state.warrantyMonths || state.price || state.serialNumber || state.notes
+    );
 
     return (
         <ScreenContainer>
@@ -61,9 +77,9 @@ export function AddItemScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <View style={styles.header}>
-                    <Text variant="h1">Add Purchase</Text>
+                    <Text variant="screenTitle">Add Purchase</Text>
                     {!isPro && state.remainingFree < FREE_ITEM_LIMIT && (
-                        <Text variant="bodySmall" color="textSecondary">
+                        <Text variant="secondary" color="textSecondary">
                             {state.remainingFree} of {FREE_ITEM_LIMIT} free remaining
                         </Text>
                     )}
@@ -75,12 +91,19 @@ export function AddItemScreen() {
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
+                    {/* ─────────────────────────────────────────────
+                        ESSENTIAL FIELDS (Always visible - 4 max)
+                        Required for minimum viable purchase entry
+                    ───────────────────────────────────────────── */}
+                    
+                    {/* 1. Photo capture - quick proof */}
                     <PhotoCapture
                         uri={state.photoUri}
                         onCapture={handleCapturePhoto}
                         onPick={handlePickPhoto}
                     />
 
+                    {/* 2. Item name - required identifier */}
                     <View style={styles.formGroup}>
                         <Input
                             label="Item name"
@@ -91,16 +114,7 @@ export function AddItemScreen() {
                         />
                     </View>
 
-                    <View style={styles.formGroup}>
-                        <Input
-                            label="Store (optional)"
-                            placeholder="e.g., Best Buy, Amazon"
-                            value={state.store}
-                            onChangeText={(text) => updateField('store', text)}
-                            autoCapitalize="words"
-                        />
-                    </View>
-
+                    {/* 3. Purchase date - essential for deadline calculation */}
                     <View style={styles.formGroup}>
                         <DatePickerField
                             label="Purchase date"
@@ -109,8 +123,9 @@ export function AddItemScreen() {
                         />
                     </View>
 
+                    {/* 4. Return window - primary urgency driver */}
                     <View style={styles.formGroup}>
-                        <Text variant="bodySmall" color="textSecondary" style={styles.label}>
+                        <Text variant="label" color="textSecondary" style={styles.label}>
                             Return window
                         </Text>
                         <ChipGroup
@@ -121,47 +136,80 @@ export function AddItemScreen() {
                         />
                     </View>
 
-                    <View style={styles.formGroup}>
-                        <Text variant="bodySmall" color="textSecondary" style={styles.label}>
-                            Warranty
-                        </Text>
-                        <ChipGroup
-                            options={WARRANTY_OPTIONS}
-                            value={state.warrantyMonths}
-                            onChange={(value) => updateField('warrantyMonths', value)}
-                            allowDeselect={false}
-                        />
-                    </View>
+                    {/* ─────────────────────────────────────────────
+                        ADVANCED FIELDS (Hidden by default)
+                        Low-frequency fields, not required for save
+                    ───────────────────────────────────────────── */}
+                    <View style={styles.advancedSection}>
+                        <CollapsibleSection
+                            title="Hide details"
+                            triggerLabel="Add more details"
+                            defaultExpanded={showAdvanced || hasAdvancedData}
+                            onToggle={setShowAdvanced}
+                        >
+                            {/* Store - with smart defaults */}
+                            <View style={styles.advancedField}>
+                                <Input
+                                    label="Store"
+                                    placeholder="e.g., Best Buy, Amazon, Costco"
+                                    value={state.store}
+                                    onChangeText={handleStoreChange}
+                                    autoCapitalize="words"
+                                />
+                                {state.storeDefaultsApplied && (
+                                    <Text variant="meta" color="success500" style={styles.advancedHint}>
+                                        Return & warranty updated for this store
+                                    </Text>
+                                )}
+                            </View>
 
-                    <View style={styles.formGroup}>
-                        <Input
-                            label="Price (optional)"
-                            placeholder="0.00"
-                            value={state.price}
-                            onChangeText={(text) => updateField('price', text)}
-                            keyboardType="decimal-pad"
-                        />
-                    </View>
+                            {/* Warranty */}
+                            <View style={styles.advancedField}>
+                                <Text variant="label" color="textSecondary" style={styles.label}>
+                                    Warranty
+                                </Text>
+                                <ChipGroup
+                                    options={WARRANTY_OPTIONS}
+                                    value={state.warrantyMonths}
+                                    onChange={(value) => updateField('warrantyMonths', value)}
+                                    allowDeselect={false}
+                                />
+                            </View>
 
-                    <View style={styles.formGroup}>
-                        <Input
-                            label="Serial number (optional)"
-                            placeholder="Enter serial number"
-                            value={state.serialNumber}
-                            onChangeText={(text) => updateField('serialNumber', text)}
-                            autoCapitalize="characters"
-                        />
-                    </View>
+                            {/* Price */}
+                            <View style={styles.advancedField}>
+                                <Input
+                                    label="Price"
+                                    placeholder="0.00"
+                                    value={state.price}
+                                    onChangeText={(text) => updateField('price', text)}
+                                    keyboardType="decimal-pad"
+                                />
+                            </View>
 
-                    <View style={styles.formGroup}>
-                        <Input
-                            label="Notes (optional)"
-                            placeholder="Any additional notes"
-                            value={state.notes}
-                            onChangeText={(text) => updateField('notes', text)}
-                            multiline
-                            numberOfLines={3}
-                        />
+                            {/* Serial number */}
+                            <View style={styles.advancedField}>
+                                <Input
+                                    label="Serial number"
+                                    placeholder="Enter serial number"
+                                    value={state.serialNumber}
+                                    onChangeText={(text) => updateField('serialNumber', text)}
+                                    autoCapitalize="characters"
+                                />
+                            </View>
+
+                            {/* Notes */}
+                            <View style={styles.advancedField}>
+                                <Input
+                                    label="Notes"
+                                    placeholder="Any additional notes"
+                                    value={state.notes}
+                                    onChangeText={(text) => updateField('notes', text)}
+                                    multiline
+                                    numberOfLines={3}
+                                />
+                            </View>
+                        </CollapsibleSection>
                     </View>
                 </ScrollView>
 
@@ -184,7 +232,7 @@ export function AddItemScreen() {
             >
                 <View style={styles.modalOverlay}>
                     <Card style={styles.modalCard}>
-                        <Text variant="h2" style={styles.modalTitle}>
+                        <Text variant="sectionHeader" style={styles.modalTitle}>
                             Free Limit Reached
                         </Text>
                         <Text variant="body" color="textSecondary" style={styles.modalText}>
@@ -215,48 +263,61 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     header: {
-        paddingVertical: spacing.lg,
+        paddingTop: spacing.lg,
+        paddingBottom: spacing.md,
     },
     content: {
         flex: 1,
     },
     contentContainer: {
-        paddingBottom: spacing.xl,
+        paddingBottom: spacing.lg,
     },
     formGroup: {
-        marginTop: spacing.lg,
+        marginTop: spacing.md,
     },
     label: {
         marginBottom: spacing.sm,
     },
+    advancedSection: {
+        marginTop: spacing.xl,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        paddingTop: spacing.xs,
+    },
+    advancedField: {
+        marginTop: spacing.md,
+    },
+    advancedHint: {
+        marginTop: spacing.xs,
+    },
     footer: {
-        paddingVertical: spacing.lg,
+        paddingVertical: spacing.md,
     },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: spacing.lg,
+        padding: spacing.md,
     },
     modalCard: {
         width: '100%',
-        maxWidth: 340,
-        padding: spacing.xl,
+        maxWidth: 320,
+        padding: spacing.lg,
     },
     modalTitle: {
         textAlign: 'center',
-        marginBottom: spacing.md,
+        marginBottom: spacing.sm,
     },
     modalText: {
         textAlign: 'center',
-        marginBottom: spacing.xl,
+        marginBottom: spacing.lg,
     },
     modalButtons: {
-        gap: spacing.md,
+        gap: spacing.sm,
     },
     dismissButton: {
         alignItems: 'center',
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.sm,
     },
 });

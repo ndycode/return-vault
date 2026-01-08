@@ -1,16 +1,38 @@
 /**
  * SettingsScreen
- * App preferences and backup options
+ * App preferences and safety actions
+ * 
+ * v1.06-F: Settings Decomposition & Enterprise-Boring Settings
+ * v1.06-D: System Confidence Layer - Enterprise-grade messaging
+ * 
+ * DESIGN PRINCIPLES:
+ * - Settings is infrastructure, not product
+ * - Low-frequency actions require deliberate intent
+ * - High-risk actions are visually isolated
+ * - No marketing language, no discovery surface
+ * 
+ * SECTION ORDER (fixed, intent-based):
+ * 1. NOTIFICATIONS - Reminder timing, permissions (medium risk)
+ * 2. ACCOUNT - Pro status, restore (low frequency, informational)
+ * 3. DATA & SAFETY - Backup/restore (high risk, isolated, collapsible)
+ * 4. APP INFO - Version, legal (read-only, quiet, collapsible)
+ * 5. DEVELOPER - Diagnostics (dev-only, hidden in production)
+ * 
+ * CONFIRMATION RULES:
+ * - Preferences: NEVER require confirmation
+ * - Read-only info: NEVER require confirmation
+ * - Import backup: ALWAYS confirm (data merge)
+ * - Export backup: NO confirmation (non-destructive)
  */
 
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Switch, Alert, TouchableOpacity, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ScreenContainer, Text, Card, Divider, Button } from '../components/primitives';
+import { ScreenContainer, Text, Card, Divider, Button, CollapsibleSection } from '../components/primitives';
 import { useSettingsStore, canUseProFeature } from '../store/settingsStore';
 import { useNotificationPermission } from '../hooks/useNotificationPermission';
-import { colors, spacing } from '../design';
+import { colors, spacing, radius } from '../design';
 import {
     collectDiagnostics,
     shouldShowDiagnostics,
@@ -18,6 +40,7 @@ import {
 } from '../services/diagnosticsService';
 import { shareBackup, importBackup } from '../services/exportService';
 import { restorePro } from '../utils/iap';
+import { SUCCESS, ERROR, ALERT_TITLES, CONFIRM } from '../utils/copy';
 import { SettingsStackParamList } from '../navigation/SettingsStack';
 
 interface SettingsRowProps {
@@ -26,15 +49,22 @@ interface SettingsRowProps {
     onPress?: () => void;
     rightElement?: React.ReactNode;
     disabled?: boolean;
+    /** Reduce visual prominence for low-frequency options */
+    quiet?: boolean;
 }
 
-function SettingsRow({ label, value, onPress, rightElement, disabled }: SettingsRowProps) {
+function SettingsRow({ label, value, onPress, rightElement, disabled, quiet }: SettingsRowProps) {
     const content = (
         <View style={[styles.row, disabled && styles.rowDisabled]}>
-            <Text variant="body" color={disabled ? 'textTertiary' : 'textPrimary'}>{label}</Text>
+            <Text 
+                variant={quiet ? 'secondary' : 'body'} 
+                color={disabled ? 'textTertiary' : quiet ? 'textSecondary' : 'textPrimary'}
+            >
+                {label}
+            </Text>
             <View style={styles.rowRight}>
                 {value && (
-                    <Text variant="body" color="textSecondary">
+                    <Text variant={quiet ? 'secondary' : 'body'} color="textSecondary">
                         {value}
                     </Text>
                 )}
@@ -60,11 +90,11 @@ function DiagnosticsRow({ label, value, status }: DiagnosticsRowProps) {
     const getStatusColor = () => {
         switch (status) {
             case 'ok':
-                return '#22C55E';
+                return colors.success500;
             case 'warn':
-                return '#F59E0B';
+                return colors.warning500;
             case 'error':
-                return '#EF4444';
+                return colors.error500;
             default:
                 return colors.textSecondary;
         }
@@ -72,11 +102,11 @@ function DiagnosticsRow({ label, value, status }: DiagnosticsRowProps) {
 
     return (
         <View style={styles.diagnosticsRow}>
-            <Text variant="bodySmall" color="textSecondary">
+            <Text variant="secondary" color="textSecondary">
                 {label}
             </Text>
             <Text
-                variant="bodySmall"
+                variant="secondary"
                 style={{ color: getStatusColor() }}
             >
                 {value}
@@ -85,10 +115,9 @@ function DiagnosticsRow({ label, value, status }: DiagnosticsRowProps) {
     );
 }
 
-function DiagnosticsSection() {
+function DiagnosticsContent() {
     const [diagnostics, setDiagnostics] = React.useState<DiagnosticsData | null>(null);
     const [loading, setLoading] = React.useState(true);
-    const [expanded, setExpanded] = React.useState(false);
 
     React.useEffect(() => {
         loadDiagnostics();
@@ -103,15 +132,11 @@ function DiagnosticsSection() {
 
     if (loading) {
         return (
-            <Card padding="none">
-                <View style={styles.cardContent}>
-                    <View style={styles.row}>
-                        <Text variant="body" color="textSecondary">
-                            Loading diagnostics...
-                        </Text>
-                    </View>
-                </View>
-            </Card>
+            <View style={styles.diagnosticsLoading}>
+                <Text variant="secondary" color="textSecondary">
+                    Loading diagnostics...
+                </Text>
+            </View>
         );
     }
 
@@ -120,146 +145,63 @@ function DiagnosticsSection() {
     }
 
     return (
-        <Card padding="none">
-            <View style={styles.cardContent}>
-                <TouchableOpacity
-                    onPress={() => setExpanded(!expanded)}
-                    activeOpacity={0.7}
-                >
-                    <View style={styles.row}>
-                        <Text variant="body">Diagnostics</Text>
-                        <Text variant="body" color="textSecondary">
-                            {expanded ? '▼' : '▶'}
-                        </Text>
-                    </View>
-                </TouchableOpacity>
-
-                {expanded && (
-                    <>
-                        <Divider spacing="none" />
-
-                        {/* Database Section */}
-                        <View style={styles.diagnosticsSection}>
-                            <Text
-                                variant="caption"
-                                color="textSecondary"
-                                style={styles.diagnosticsHeader}
-                            >
-                                DATABASE
-                            </Text>
-                            <DiagnosticsRow
-                                label="Schema Version"
-                                value={`${diagnostics.database.schemaVersion} / ${diagnostics.database.expectedVersion}`}
-                                status={diagnostics.database.isUpToDate ? 'ok' : 'error'}
-                            />
-                        </View>
-
-                        <Divider spacing="none" />
-
-                        {/* Purchases Section */}
-                        <View style={styles.diagnosticsSection}>
-                            <Text
-                                variant="caption"
-                                color="textSecondary"
-                                style={styles.diagnosticsHeader}
-                            >
-                                PURCHASES
-                            </Text>
-                            <DiagnosticsRow
-                                label="Total"
-                                value={String(diagnostics.purchases.total)}
-                            />
-                            <DiagnosticsRow
-                                label="Active"
-                                value={String(diagnostics.purchases.active)}
-                            />
-                            <DiagnosticsRow
-                                label="Archived"
-                                value={String(diagnostics.purchases.archived)}
-                            />
-                        </View>
-
-                        <Divider spacing="none" />
-
-                        {/* Notifications Section */}
-                        <View style={styles.diagnosticsSection}>
-                            <Text
-                                variant="caption"
-                                color="textSecondary"
-                                style={styles.diagnosticsHeader}
-                            >
-                                NOTIFICATIONS
-                            </Text>
-                            <DiagnosticsRow
-                                label="Permission"
-                                value={diagnostics.notifications.permissionStatus}
-                                status={
-                                    diagnostics.notifications.permissionStatus === 'granted'
-                                        ? 'ok'
-                                        : diagnostics.notifications.permissionStatus === 'denied'
-                                            ? 'error'
-                                            : undefined
-                                }
-                            />
-                        </View>
-
-                        <Divider spacing="none" />
-
-                        {/* Backup Section */}
-                        <View style={styles.diagnosticsSection}>
-                            <Text
-                                variant="caption"
-                                color="textSecondary"
-                                style={styles.diagnosticsHeader}
-                            >
-                                BACKUP
-                            </Text>
-                            <DiagnosticsRow
-                                label="Last Backup"
-                                value={diagnostics.backup.lastBackupDate ?? 'Never'}
-                                status={diagnostics.backup.lastBackupDate ? 'ok' : 'warn'}
-                            />
-                        </View>
-
-                        <Divider spacing="none" />
-
-                        {/* Debug Logging Section */}
-                        <View style={styles.diagnosticsSection}>
-                            <Text
-                                variant="caption"
-                                color="textSecondary"
-                                style={styles.diagnosticsHeader}
-                            >
-                                DEBUG LOGGING
-                            </Text>
-                            <DiagnosticsRow
-                                label="Enabled"
-                                value={diagnostics.debug.enabled ? 'Yes' : 'No'}
-                                status={diagnostics.debug.enabled ? 'ok' : undefined}
-                            />
-                            {Object.entries(diagnostics.debug.categories).map(([cat, enabled]) => (
-                                <DiagnosticsRow
-                                    key={cat}
-                                    label={`  ${cat}`}
-                                    value={enabled ? 'ON' : 'OFF'}
-                                />
-                            ))}
-                        </View>
-
-                        <Divider spacing="none" />
-
-                        {/* Refresh Button */}
-                        <TouchableOpacity onPress={loadDiagnostics} activeOpacity={0.7}>
-                            <View style={[styles.row, styles.refreshRow]}>
-                                <Text variant="body" color="primary600">
-                                    Refresh Diagnostics
-                                </Text>
-                            </View>
-                        </TouchableOpacity>
-                    </>
-                )}
+        <View style={styles.diagnosticsContent}>
+            <View style={styles.diagnosticsSection}>
+                <Text variant="label" color="textTertiary" style={styles.diagnosticsHeader}>
+                    DATABASE
+                </Text>
+                <DiagnosticsRow
+                    label="Schema Version"
+                    value={`${diagnostics.database.schemaVersion} / ${diagnostics.database.expectedVersion}`}
+                    status={diagnostics.database.isUpToDate ? 'ok' : 'error'}
+                />
             </View>
-        </Card>
+
+            <View style={styles.diagnosticsSection}>
+                <Text variant="label" color="textTertiary" style={styles.diagnosticsHeader}>
+                    PURCHASES
+                </Text>
+                <DiagnosticsRow label="Total" value={String(diagnostics.purchases.total)} />
+                <DiagnosticsRow label="Active" value={String(diagnostics.purchases.active)} />
+                <DiagnosticsRow label="Archived" value={String(diagnostics.purchases.archived)} />
+            </View>
+
+            <View style={styles.diagnosticsSection}>
+                <Text variant="label" color="textTertiary" style={styles.diagnosticsHeader}>
+                    NOTIFICATIONS
+                </Text>
+                <DiagnosticsRow
+                    label="Permission"
+                    value={diagnostics.notifications.permissionStatus}
+                    status={
+                        diagnostics.notifications.permissionStatus === 'granted'
+                            ? 'ok'
+                            : diagnostics.notifications.permissionStatus === 'denied'
+                                ? 'error'
+                                : undefined
+                    }
+                />
+            </View>
+
+            <View style={styles.diagnosticsSection}>
+                <Text variant="label" color="textTertiary" style={styles.diagnosticsHeader}>
+                    BACKUP
+                </Text>
+                <DiagnosticsRow
+                    label="Last Backup"
+                    value={diagnostics.backup.lastBackupDate ?? 'Never'}
+                    status={diagnostics.backup.lastBackupDate ? 'ok' : 'warn'}
+                />
+            </View>
+
+            <TouchableOpacity onPress={loadDiagnostics} activeOpacity={0.7}>
+                <View style={styles.refreshRow}>
+                    <Text variant="buttonSmall" color="primary600">
+                        Refresh
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        </View>
     );
 }
 
@@ -286,15 +228,15 @@ export function SettingsScreen() {
             const result = await restorePro();
             if (result.success) {
                 if (result.hasPro) {
-                    Alert.alert('Restored', 'Your Pro purchase has been restored.');
+                    Alert.alert(ALERT_TITLES.RESTORE, SUCCESS.PRO_RESTORED);
                 } else {
-                    Alert.alert('No Purchase Found', 'We couldn\'t find a Pro purchase to restore.');
+                    Alert.alert(ALERT_TITLES.RESTORE, ERROR.NO_PURCHASE_FOUND);
                 }
             } else {
-                Alert.alert('Restore Failed', result.error || 'Could not restore purchases.');
+                Alert.alert(ALERT_TITLES.ERROR, ERROR.RESTORE_FAILED);
             }
         } catch (error) {
-            Alert.alert('Error', 'An unexpected error occurred.');
+            Alert.alert(ALERT_TITLES.ERROR, ERROR.GENERIC);
         } finally {
             setIsRestoring(false);
         }
@@ -302,8 +244,8 @@ export function SettingsScreen() {
 
     const handleReturnReminderPress = () => {
         Alert.alert(
-            'Return Reminder',
-            'Choose when to be reminded before return deadline',
+            'Return reminder',
+            'Reminder timing',
             [
                 { text: '1 day before', onPress: () => updateNotificationSettings({ returnLeadDays: [1] }) },
                 { text: '3 days before', onPress: () => updateNotificationSettings({ returnLeadDays: [1, 3] }) },
@@ -315,8 +257,8 @@ export function SettingsScreen() {
 
     const handleWarrantyReminderPress = () => {
         Alert.alert(
-            'Warranty Reminder',
-            'Choose when to be reminded before warranty expires',
+            'Warranty reminder',
+            'Reminder timing',
             [
                 { text: '7 days before', onPress: () => updateNotificationSettings({ warrantyLeadDays: [7] }) },
                 { text: '14 days before', onPress: () => updateNotificationSettings({ warrantyLeadDays: [7, 14] }) },
@@ -332,35 +274,35 @@ export function SettingsScreen() {
 
     const handleExport = async () => {
         if (!canBackup) {
-            setProModalMessage('Backup & export is a Pro feature. Upgrade to unlock this and more.');
+            setProModalMessage('Backup requires Pro.');
             setShowProModal(true);
             return;
         }
         const success = await shareBackup();
         if (!success) {
-            Alert.alert('Error', 'Failed to export backup');
+            Alert.alert(ALERT_TITLES.ERROR, ERROR.BACKUP_FAILED);
         }
     };
 
     const handleImport = async () => {
         if (!canBackup) {
-            setProModalMessage('Backup & restore is a Pro feature. Upgrade to unlock this and more.');
+            setProModalMessage('Restore requires Pro.');
             setShowProModal(true);
             return;
         }
         Alert.alert(
-            'Import Backup',
-            'This will merge the backup with your current data. Do you want to continue?',
+            CONFIRM.IMPORT.title,
+            CONFIRM.IMPORT.message,
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: CONFIRM.IMPORT.cancel, style: 'cancel' },
                 {
-                    text: 'Import',
+                    text: CONFIRM.IMPORT.confirm,
                     onPress: async () => {
                         const result = await importBackup();
                         if (result.success) {
-                            Alert.alert('Success', `Imported ${result.count} items successfully.`);
+                            Alert.alert(ALERT_TITLES.INFO, SUCCESS.BACKUP_IMPORTED(result.count));
                         } else if (result.error !== 'No file selected') {
-                            Alert.alert('Error', result.error || 'Failed to import backup');
+                            Alert.alert(ALERT_TITLES.ERROR, ERROR.IMPORT_FAILED);
                         }
                     },
                 },
@@ -371,59 +313,32 @@ export function SettingsScreen() {
     const getReturnReminderText = () => {
         const days = notificationSettings.returnLeadDays;
         if (days.length === 0) return 'Off';
-        return `${Math.max(...days)} days before`;
+        return `${Math.max(...days)} days`;
     };
 
     const getWarrantyReminderText = () => {
         const days = notificationSettings.warrantyLeadDays;
         if (days.length === 0) return 'Off';
-        return `${Math.max(...days)} days before`;
+        return `${Math.max(...days)} days`;
     };
 
     return (
         <ScreenContainer>
             <View style={styles.header}>
-                <Text variant="h1">Settings</Text>
+                <Text variant="screenTitle">Settings</Text>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Pro Section */}
-                <Text variant="caption" color="textSecondary" style={styles.sectionTitle}>
-                    PRO
-                </Text>
-                <Card padding="none">
-                    <View style={styles.cardContent}>
-                        {isPro ? (
-                            <SettingsRow
-                                label="Pro unlocked"
-                                rightElement={
-                                    <View style={styles.proUnlockedBadge}>
-                                        <Text variant="bodySmall" color="textInverse">✓ Unlocked</Text>
-                                    </View>
-                                }
-                            />
-                        ) : (
-                            <SettingsRow
-                                label="Upgrade to Pro"
-                                value="$4.99"
-                                onPress={handleUpgradePress}
-                            />
-                        )}
-                        <Divider spacing="none" />
-                        <SettingsRow
-                            label="Restore purchases"
-                            value={isRestoring ? 'Restoring...' : undefined}
-                            onPress={isRestoring ? undefined : handleRestorePurchases}
-                            disabled={isRestoring}
-                        />
-                    </View>
-                </Card>
-
-                {/* Notification Permission */}
+                {/* ─────────────────────────────────────────────
+                    SECTION 1: NOTIFICATIONS (Daily behavior)
+                    Most frequently adjusted - always visible
+                ───────────────────────────────────────────── */}
+                
+                {/* Permission banner - context-dependent */}
                 {hasPermission === false && (
                     <View style={styles.permissionBanner}>
-                        <Text variant="bodySmall" color="warning600">
-                            Notifications are disabled. Enable them in Settings to receive reminders.
+                        <Text variant="secondary" color="warning600">
+                            Notifications disabled
                         </Text>
                         <Pressable onPress={requestPermission} style={styles.enableButton}>
                             <Text variant="buttonSmall" color="primary600">Enable</Text>
@@ -431,7 +346,7 @@ export function SettingsScreen() {
                     </View>
                 )}
 
-                <Text variant="caption" color="textSecondary" style={styles.sectionTitle}>
+                <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
                     NOTIFICATIONS
                 </Text>
                 <Card padding="none">
@@ -461,50 +376,127 @@ export function SettingsScreen() {
                     </View>
                 </Card>
 
-                <Text variant="caption" color="textSecondary" style={styles.sectionTitle}>
-                    DATA
+                {/* ─────────────────────────────────────────────
+                    SECTION 2: ACCOUNT (Pro status)
+                    Less frequent - collapsible
+                ───────────────────────────────────────────── */}
+                <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
+                    ACCOUNT
                 </Text>
                 <Card padding="none">
                     <View style={styles.cardContent}>
-                        <SettingsRow 
-                            label={isPro ? "Export backup" : "Export backup (Pro)"} 
-                            onPress={handleExport} 
-                        />
+                        {isPro ? (
+                            <SettingsRow
+                                label="Pro unlocked"
+                                rightElement={
+                                    <View style={styles.proUnlockedBadge}>
+                                        <Text variant="symbolMd" color="textInverse">✓</Text>
+                                    </View>
+                                }
+                            />
+                        ) : (
+                            <SettingsRow
+                                label="Upgrade to Pro"
+                                value="$4.99"
+                                onPress={handleUpgradePress}
+                            />
+                        )}
                         <Divider spacing="none" />
-                        <SettingsRow 
-                            label={isPro ? "Import backup" : "Import backup (Pro)"} 
-                            onPress={handleImport} 
+                        <SettingsRow
+                            label="Restore purchases"
+                            value={isRestoring ? 'Restoring...' : undefined}
+                            onPress={isRestoring ? undefined : handleRestorePurchases}
+                            disabled={isRestoring}
+                            quiet
                         />
                     </View>
                 </Card>
 
-                <Text variant="caption" color="textSecondary" style={styles.sectionTitle}>
-                    ABOUT
+                {/* ─────────────────────────────────────────────
+                    SECTION 3: DATA & SAFETY (Backup/Restore)
+                    High-risk actions - collapsed, visually isolated
+                ───────────────────────────────────────────── */}
+                <Text variant="label" color="textSecondary" style={styles.sectionTitle}>
+                    DATA & SAFETY
                 </Text>
                 <Card padding="none">
                     <View style={styles.cardContent}>
-                        <SettingsRow label="Version" value="1.1.0" />
-                        <Divider spacing="none" />
-                        <SettingsRow label="Privacy Policy" onPress={() => { }} />
-                        <Divider spacing="none" />
-                        <SettingsRow label="Terms of Service" onPress={() => { }} />
+                        <CollapsibleSection
+                            title="Backup & restore"
+                            triggerLabel="Backup & restore"
+                            defaultExpanded={false}
+                        >
+                            <View style={styles.dataContent}>
+                                <SettingsRow 
+                                    label="Export backup" 
+                                    onPress={handleExport}
+                                    disabled={!isPro}
+                                    quiet={!isPro}
+                                />
+                                <Divider spacing="none" />
+                                <SettingsRow 
+                                    label="Import backup" 
+                                    onPress={handleImport}
+                                    disabled={!isPro}
+                                    quiet={!isPro}
+                                />
+                            </View>
+                        </CollapsibleSection>
                     </View>
                 </Card>
 
-                {/* DEV-only Diagnostics Section */}
+                {/* ─────────────────────────────────────────────
+                    SECTION 4: APP INFO (Legal/Info)
+                    Rarely touched - collapsed, visually quiet
+                ───────────────────────────────────────────── */}
+                <Text variant="label" color="textTertiary" style={styles.sectionTitle}>
+                    APP INFO
+                </Text>
+                <Card padding="none" style={styles.quietCard}>
+                    <View style={styles.cardContent}>
+                        <CollapsibleSection
+                            title="App info"
+                            triggerLabel="Version & legal"
+                            defaultExpanded={false}
+                        >
+                            <View style={styles.aboutContent}>
+                                <SettingsRow label="Version" value="1.1.0" quiet />
+                                <Divider spacing="none" />
+                                <SettingsRow label="Privacy policy" onPress={() => { }} quiet />
+                                <Divider spacing="none" />
+                                <SettingsRow label="Terms of service" onPress={() => { }} quiet />
+                            </View>
+                        </CollapsibleSection>
+                    </View>
+                </Card>
+
+                {/* ─────────────────────────────────────────────
+                    SECTION 5: DEVELOPER (Dev-only)
+                    Hidden in production
+                ───────────────────────────────────────────── */}
                 {shouldShowDiagnostics() && (
                     <>
-                        <Text variant="caption" color="textSecondary" style={styles.sectionTitle}>
+                        <Text variant="label" color="textTertiary" style={styles.sectionTitle}>
                             DEVELOPER
                         </Text>
-                        <DiagnosticsSection />
+                        <Card padding="none" style={styles.quietCard}>
+                            <View style={styles.cardContent}>
+                                <CollapsibleSection
+                                    title="Diagnostics"
+                                    triggerLabel="Diagnostics"
+                                    defaultExpanded={false}
+                                >
+                                    <DiagnosticsContent />
+                                </CollapsibleSection>
+                            </View>
+                        </Card>
                     </>
                 )}
 
                 <View style={styles.footer} />
             </ScrollView>
 
-            {/* Pro Feature Modal */}
+            {/* Pro Required Modal - neutral, non-marketing */}
             <Modal
                 visible={showProModal}
                 transparent
@@ -513,15 +505,15 @@ export function SettingsScreen() {
             >
                 <View style={styles.modalOverlay}>
                     <Card style={styles.modalCard}>
-                        <Text variant="h2" style={styles.modalTitle}>
-                            Pro Feature
+                        <Text variant="sectionHeader" style={styles.modalTitle}>
+                            Pro required
                         </Text>
                         <Text variant="body" color="textSecondary" style={styles.modalText}>
                             {proModalMessage}
                         </Text>
                         <View style={styles.modalButtons}>
                             <Button
-                                title="Upgrade to Pro"
+                                title="View Pro"
                                 fullWidth
                                 onPress={() => {
                                     setShowProModal(false);
@@ -530,7 +522,7 @@ export function SettingsScreen() {
                             />
                             <Pressable onPress={() => setShowProModal(false)} style={styles.dismissButton}>
                                 <Text variant="body" color="textSecondary">
-                                    Maybe Later
+                                    Cancel
                                 </Text>
                             </Pressable>
                         </View>
@@ -543,14 +535,14 @@ export function SettingsScreen() {
 
 const styles = StyleSheet.create({
     header: {
-        paddingVertical: spacing.lg,
+        paddingTop: spacing.lg,
+        paddingBottom: spacing.md,
     },
     permissionBanner: {
         backgroundColor: colors.warning50,
         padding: spacing.md,
-        borderRadius: 8,
-        marginBottom: spacing.lg,
-        marginTop: spacing.lg,
+        borderRadius: radius.md,
+        marginBottom: spacing.md,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -560,18 +552,22 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
     },
     sectionTitle: {
-        marginTop: spacing.xl,
+        marginTop: spacing.lg,
         marginBottom: spacing.sm,
         marginLeft: spacing.xs,
     },
     cardContent: {
-        paddingHorizontal: spacing.lg,
+        paddingHorizontal: spacing.md,
+    },
+    quietCard: {
+        opacity: 0.9,
     },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: spacing.md,
+        minHeight: 48,
     },
     rowDisabled: {
         opacity: 0.5,
@@ -580,10 +576,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    dataContent: {
+        paddingTop: spacing.xs,
+    },
+    aboutContent: {
+        paddingTop: spacing.xs,
+    },
     footer: {
-        height: spacing.xxxl,
+        height: spacing.xxl,
     },
     // Diagnostics styles
+    diagnosticsLoading: {
+        paddingVertical: spacing.md,
+    },
+    diagnosticsContent: {
+        paddingTop: spacing.sm,
+    },
     diagnosticsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -597,39 +605,40 @@ const styles = StyleSheet.create({
         marginBottom: spacing.xs,
     },
     refreshRow: {
-        justifyContent: 'center',
+        paddingVertical: spacing.sm,
+        alignItems: 'center',
     },
     proUnlockedBadge: {
         backgroundColor: colors.success500,
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs,
-        borderRadius: 4,
+        borderRadius: radius.sm,
     },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: spacing.lg,
+        padding: spacing.md,
     },
     modalCard: {
         width: '100%',
-        maxWidth: 340,
-        padding: spacing.xl,
+        maxWidth: 320,
+        padding: spacing.lg,
     },
     modalTitle: {
         textAlign: 'center',
-        marginBottom: spacing.md,
+        marginBottom: spacing.sm,
     },
     modalText: {
         textAlign: 'center',
-        marginBottom: spacing.xl,
+        marginBottom: spacing.lg,
     },
     modalButtons: {
-        gap: spacing.md,
+        gap: spacing.sm,
     },
     dismissButton: {
         alignItems: 'center',
-        paddingVertical: spacing.md,
+        paddingVertical: spacing.sm,
     },
 });
